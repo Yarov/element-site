@@ -1,7 +1,7 @@
 export const locations = {
   condesa: {
     name: "Roma Norte",
-    whatsapp: "+525568901716",
+    whatsapp: "+525516793129",
   },
   coyoacan: {
     name: "Coyoacán",

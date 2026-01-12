@@ -1,0 +1,17 @@
+[variables]
+NODE_ENV = "production"
+
+[phases.setup]
+# Next 16 + React 19 funcionan bien en Node 20/22. Mantén 22 si tu infra lo soporta.
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+# Fuerza npm porque existe package-lock.json y el pnpm-lock.yaml parece incompleto.
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+# Coolify/Nixpacks provee PORT; Next debe escuchar en ese puerto.
+cmd = "npm run start -- -p $PORT"

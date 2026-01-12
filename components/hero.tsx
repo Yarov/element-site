@@ -5,12 +5,17 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { MessageCircle } from "lucide-react"
 import { LocationSelector } from "@/components/location-selector"
+import { useGtagEvent } from "@/hooks/use-gtag-event"
 
 export function Hero() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
+  const track = useGtagEvent()
 
   const handleReservar = () => {
+    track("cta_reserve_click", {
+      source: "hero",
+    })
     setWhatsappMessage("Hola, me gustaría conocer más sobre los servicios de ElementSpa.")
     setShowLocationSelector(true)
   }

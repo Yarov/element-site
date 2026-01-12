@@ -7,6 +7,7 @@ import { Plus, Minus, Feather, Infinity, Flame, Heart, Sparkles, Flower2, Messag
 import { Button } from "@/components/ui/button"
 import { services, type Service } from "@/lib/data"
 import { LocationSelector } from "@/components/location-selector"
+import { useGtagEvent } from "@/hooks/use-gtag-event"
 
 const iconMap: Record<string, React.ReactNode> = {
   feather: <Feather className="h-5 w-5" />,
@@ -21,8 +22,14 @@ export function Services() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
+  const track = useGtagEvent()
 
   const handleReservar = (service: Service, option?: string) => {
+    track("cta_reserve_click", {
+      source: "services",
+      service_title: service.title,
+      service_option: option ?? null,
+    })
     const mensaje = option
       ? `Hola, me interesa el servicio "${service.title}" - ${option}. ¿Podrían darme más información?`
       : `Hola, me interesa el servicio "${service.title}" (${service.time} - ${service.price}). ¿Podrían darme más información?`

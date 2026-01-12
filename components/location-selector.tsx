@@ -2,6 +2,7 @@
 
 import { X, MapPin, MessageCircle } from "lucide-react"
 import { locations, getWhatsAppLink } from "@/lib/data"
+import { useGtagEvent } from "@/hooks/use-gtag-event"
 
 interface LocationSelectorProps {
   isOpen: boolean
@@ -12,7 +13,16 @@ interface LocationSelectorProps {
 export function LocationSelector({ isOpen, onClose, message }: LocationSelectorProps) {
   if (!isOpen) return null
 
+  const track = useGtagEvent()
+
   const handleSelectLocation = (whatsapp: string) => {
+    const locationName =
+      Object.values(locations).find((l) => l.whatsapp === whatsapp)?.name ?? "unknown"
+
+    track("whatsapp_open", {
+      source: "location_selector",
+      location_name: locationName,
+    })
     window.open(getWhatsAppLink(whatsapp, message), "_blank")
     onClose()
   }

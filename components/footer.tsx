@@ -3,8 +3,11 @@
 import Link from "next/link"
 import { Instagram, MessageCircle } from "lucide-react"
 import { locations, getWhatsAppLink } from "@/lib/data"
+import { useGtagEvent } from "@/hooks/use-gtag-event"
 
 export function Footer() {
+  const track = useGtagEvent()
+
   return (
     <footer className="bg-secondary py-16">
       <div className="max-w-7xl mx-auto px-6">
@@ -26,6 +29,12 @@ export function Footer() {
                 href={getWhatsAppLink(locations.condesa.whatsapp, "Hola, quiero agendar en Roma Norte")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  track("cta_contact_click", {
+                    source: "footer",
+                    location_name: "Roma Norte",
+                  })
+                }
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <MessageCircle className="h-4 w-4" />
@@ -35,6 +44,12 @@ export function Footer() {
                 href={getWhatsAppLink(locations.coyoacan.whatsapp, "Hola, quiero agendar en Coyoacán")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  track("cta_contact_click", {
+                    source: "footer",
+                    location_name: "Coyoacán",
+                  })
+                }
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <MessageCircle className="h-4 w-4" />

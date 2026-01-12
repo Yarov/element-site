@@ -2,6 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Playfair_Display, Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import Script from "next/script"
+import { SectionClickTracker } from "@/components/section-click-tracker"
 import "./globals.css"
 
 const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
@@ -22,6 +24,14 @@ export default function RootLayout({
   return (
     <html lang="es-MX">
       <body className={`${_playfair.variable} ${_inter.variable} font-sans antialiased`}>
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-J3Q1EL831E" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-J3Q1EL831E');`}
+        </Script>
+        <SectionClickTracker />
         {children}
         <Analytics />
       </body>

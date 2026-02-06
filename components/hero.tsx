@@ -22,7 +22,7 @@ export function Hero() {
 
   return (
     <>
-      <section className="relative min-h-screen flex items-center pt-20">
+      <section id="inicio" className="relative min-h-screen flex items-center pt-20">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -41,11 +41,11 @@ export function Hero() {
               Experiencias exclusivas para caballeros
             </p>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-tight text-balance mb-6">
-              Despierta tus sentidos
+              Spa Exclusivo para Hombres en CDMX
             </h1>
             <p className="text-lg text-muted-foreground max-w-md leading-relaxed mb-8">
-              Sumérgete en un mundo de sensaciones donde el placer y la relajación se fusionan. Masajes exclusivos en un
-              ambiente discreto y sofisticado.
+              Sumérgete en un mundo de sensaciones donde el placer y la relajación se fusionan. Masajes para hombres en
+              la Roma y Coyoacán. Disfruta de un ambiente discreto y sofisticado en el corazón de la CDMX.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button

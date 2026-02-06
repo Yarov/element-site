@@ -59,7 +59,7 @@ export function Services() {
                   <div className="flex items-center gap-6">
                     <span className="text-primary">{iconMap[service.iconType]}</span>
                     <h3 className="text-xl md:text-2xl font-serif group-hover:text-primary transition-colors">
-                      {service.title}
+                      {service.title}<span className="sr-only">{` – ${service.seoTitle}`}</span>
                     </h3>
                   </div>
                   <div className="flex items-center gap-6">

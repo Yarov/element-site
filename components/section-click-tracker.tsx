@@ -27,7 +27,11 @@ export function SectionClickTracker() {
       const sectionFromAnchorHash = getSectionIdFromHash(anchor?.getAttribute("href"))
 
       const sectionEl = target.closest("section[id]") as HTMLElement | null
-      const sectionId = sectionFromAnchorHash ?? sectionEl?.id ?? "unknown"
+      const headerEl = target.closest("header") as HTMLElement | null
+      const footerEl = target.closest("footer") as HTMLElement | null
+
+      const sectionId =
+        sectionFromAnchorHash ?? sectionEl?.id ?? headerEl?.tagName?.toLowerCase() ?? footerEl?.tagName?.toLowerCase() ?? "unknown"
 
       const clickable = (anchor ?? target.closest("button") ?? target.closest("[role='button']") ?? target) as
         | HTMLElement

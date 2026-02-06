@@ -77,7 +77,7 @@ export function Footer() {
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">© 2026 ElementSpa. Todos los derechos reservados.</p>
           <div className="flex gap-6 text-sm">
-            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/aviso-de-privacidad" className="text-muted-foreground hover:text-foreground transition-colors">
               Aviso de Privacidad
             </Link>
             <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -85,6 +85,10 @@ export function Footer() {
             </Link>
           </div>
         </div>
+
+        <p className="text-muted-foreground/60 text-xs text-center mt-6">
+          Atendiendo caballeros en: Roma Norte, Roma Sur, Condesa, Coyoacán, Del Valle, Polanco y San Ángel.
+        </p>
       </div>
     </footer>
   )

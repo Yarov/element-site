@@ -49,6 +49,12 @@ export function Header() {
             >
               Testimonios
             </Link>
+            <Link
+              href="/blog"
+              className="text-sm tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Blog
+            </Link>
           </nav>
 
           <div className="hidden md:block">
@@ -86,6 +92,13 @@ export function Header() {
               onClick={() => setIsOpen(false)}
             >
               Testimonios
+            </Link>
+            <Link
+              href="/blog"
+              className="text-sm tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Blog
             </Link>
             <Button
               onClick={handleReservar}

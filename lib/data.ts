@@ -31,6 +31,7 @@ export interface ServiceOption {
 export interface Service {
   id: number
   title: string
+  seoTitle: string
   price?: string
   time?: string
   description: string
@@ -43,6 +44,7 @@ export const services: Service[] = [
   {
     id: 1,
     title: "CARICIAS DEL ALMA",
+    seoTitle: "Masaje Sensorial y Relajación Suave para Hombres",
     price: "$1,100",
     time: "30 min",
     description:
@@ -53,6 +55,7 @@ export const services: Service[] = [
   {
     id: 2,
     title: "CONEXIÓN ESENCIAL",
+    seoTitle: "Masaje Relajante de Cuerpo Completo y Alivio de Estrés",
     price: "$1,350",
     time: "50 min",
     description:
@@ -63,6 +66,7 @@ export const services: Service[] = [
   {
     id: 3,
     title: "ENERGÍA VITAL",
+    seoTitle: "Masaje Descontracturante y Terapia de Tejido Profundo",
     price: "$1,550",
     time: "50 min",
     description:
@@ -73,6 +77,7 @@ export const services: Service[] = [
   {
     id: 4,
     title: "PIEL A PIEL",
+    seoTitle: "Masaje Tántrico Sensorial Premium y Contacto Integral",
     iconType: "heart",
     description:
       "La experiencia que despierta cada rincón de tu cuerpo comienza con suaves estímulos mientras estas boca abajo; son objetos delicados que recorren tu piel provocando despertar tus sentidos y preparando tu cuerpo para lo que viene. Una vez listo, la terapeuta se deslizará sobre de ti en topless utilizando todo su cuerpo (torso, pecho, brazos y piernas) para darte un masaje íntimo, intenso y muy sensual. Después de unos minutos, la terapeuta te pedirá que gires para continuar con tu masaje piel a piel hasta provocar tu erección y estimularte con sus manos.",
@@ -96,6 +101,7 @@ export const services: Service[] = [
   {
     id: 5,
     title: "FANTASÍA COMPARTIDA",
+    seoTitle: "Experiencia de Relajación Sensual e Interactiva",
     iconType: "stars",
     description:
       "Cumple uno de los deseos más prohibidos. Comienza dándole un masaje a tu terapeuta mientras ella te guía con el cuerpo semi desnudo (topless), creando una conexión íntima y única. Después, te relajarás por completo mientras ella toma el control y te brinda un masaje piel a piel caracterizado por la sensualidad y lo estimulante que transformará el momento hasta llevarte a un completo estado de éxtasis y terminando con tu eyaculación.",
@@ -117,6 +123,7 @@ export const services: Service[] = [
   {
     id: 6,
     title: "MASAJE 4 MANOS",
+    seoTitle: "Masaje Tántrico a Cuatro Manos con Dos Terapeutas",
     iconType: "lotus",
     description:
       "Doble contacto, doble placer. Déjate llevar por una experiencia incomparable donde dos terapeutas en topless sincronizan sus cuerpos para despertar todos tus sentidos. En este masaje ambas recorrerán cada parte de tu cuerpo con el suyo dejándote tocar y echando a andar tu imaginación para mantener tu erección el mayor tiempo posible hasta llegar a una estimulación coordinada para que puedas disfrutar de un estado de placer absoluto.",

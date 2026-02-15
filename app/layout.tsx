@@ -10,8 +10,40 @@ const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playf
 const _inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
-  title: "ElementSpa | Masajes Exclusivos para Hombres en CDMX",
-  description:"Descubre una experiencia sensorial única en ElementSpa. Masajes exclusivos para caballeros en Roma Norte y Coyoacán. Reserva por WhatsApp."
+  metadataBase: new URL("https://elementspa.mx"),
+  title: {
+    default: "ElementSpa | Masajes Exclusivos para Hombres en CDMX",
+    template: "%s | ElementSpa",
+  },
+  description:
+    "Descubre una experiencia sensorial única en ElementSpa. Masajes exclusivos para caballeros en Roma Norte y Coyoacán. Reserva por WhatsApp.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_MX",
+    url: "https://elementspa.mx",
+    siteName: "ElementSpa",
+    title: "ElementSpa | Masajes Exclusivos para Hombres en CDMX",
+    description:
+      "Descubre una experiencia sensorial única en ElementSpa. Masajes exclusivos para caballeros en Roma Norte y Coyoacán.",
+    images: [
+      {
+        url: "/dark-luxury-spa-massage-room-with-candles-ambient-.jpg",
+        width: 1200,
+        height: 630,
+        alt: "ElementSpa - Masajes Exclusivos en CDMX",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ElementSpa | Masajes Exclusivos para Hombres en CDMX",
+    description:
+      "Descubre una experiencia sensorial única en ElementSpa. Masajes exclusivos para caballeros en Roma Norte y Coyoacán.",
+    images: ["/dark-luxury-spa-massage-room-with-candles-ambient-.jpg"],
+  },
 }
 
 const jsonLd = {

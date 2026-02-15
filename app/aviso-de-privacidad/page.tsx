@@ -3,9 +3,13 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Aviso de Privacidad | ElementSpa",
+  title: "Aviso de Privacidad",
   description:
     "Aviso de Privacidad Integral de ElementSpa. Conoce cómo protegemos tus datos personales conforme a la Ley Federal de Protección de Datos Personales.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function AvisoDePrivacidad() {

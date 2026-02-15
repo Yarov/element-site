@@ -5,9 +5,18 @@ import { ArrowLeft } from "lucide-react"
 import { getAllPosts } from "@/lib/blog"
 
 export const metadata: Metadata = {
-  title: "Blog | ElementSpa",
+  title: "Blog",
   description:
     "Artículos sobre bienestar, masajes sensoriales y relajación para hombres en Ciudad de México. Consejos, guías y novedades de ElementSpa.",
+  alternates: {
+    canonical: "/blog",
+  },
+  openGraph: {
+    title: "Blog | ElementSpa",
+    description:
+      "Artículos sobre bienestar, masajes sensoriales y relajación para hombres en Ciudad de México.",
+    url: "/blog",
+  },
 }
 
 export default function BlogPage() {

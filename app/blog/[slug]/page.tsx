@@ -13,12 +13,24 @@ export function generateMetadata({ params }: { params: Promise<{ slug: string }>
   return params.then(({ slug }) => {
     const { meta } = getPostBySlug(slug)
     return {
-      title: `${meta.title} | ElementSpa`,
+      title: meta.title,
       description: meta.description,
+      alternates: {
+        canonical: `/blog/${slug}`,
+      },
       openGraph: {
         title: meta.title,
         description: meta.description,
-        images: [{ url: meta.image }],
+        url: `/blog/${slug}`,
+        type: "article",
+        publishedTime: meta.date,
+        images: [{ url: meta.image, alt: meta.title }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: meta.title,
+        description: meta.description,
+        images: [meta.image],
       },
     }
   })

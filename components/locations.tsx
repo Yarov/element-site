@@ -3,7 +3,6 @@
 import { MapPin, MessageCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { locations, getWhatsAppLink } from "@/lib/data"
-import { useGtagEvent } from "@/hooks/use-gtag-event"
 
 const sucursales = [
   {
@@ -23,13 +22,7 @@ const sucursales = [
 ]
 
 export function Locations() {
-  const track = useGtagEvent()
-
   const handleContactar = (whatsapp: string, sucursal: string) => {
-    track("cta_contact_click", {
-      source: "locations",
-      location_name: sucursal,
-    })
     window.open(getWhatsAppLink(whatsapp, `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`), "_blank")
   }
 

@@ -5,16 +5,11 @@ import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { locations, getWhatsAppLink } from "@/lib/data"
-import { useGtagEvent } from "@/hooks/use-gtag-event"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
-  const track = useGtagEvent()
 
   const handleReservar = () => {
-    track("cta_reserve_click", {
-      source: "header",
-    })
     window.open(
       getWhatsAppLink(locations.condesa.whatsapp, "Hola, me gustaría agendar una cita en ElementSpa."),
       "_blank",

@@ -1,18 +1,20 @@
 "use client"
 
 import { X, MapPin, MessageCircle } from "lucide-react"
-import { locations, getWhatsAppLink } from "@/lib/data"
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 interface LocationSelectorProps {
   isOpen: boolean
   onClose: () => void
   message: string
+  servicio?: string
 }
 
-export function LocationSelector({ isOpen, onClose, message }: LocationSelectorProps) {
+export function LocationSelector({ isOpen, onClose, message, servicio }: LocationSelectorProps) {
   if (!isOpen) return null
 
-  const handleSelectLocation = (whatsapp: string) => {
+  const handleSelectLocation = (whatsapp: string, locationName: string) => {
+    trackWhatsAppClick(locationName, servicio)
     window.open(getWhatsAppLink(whatsapp, message), "_blank")
     onClose()
   }
@@ -43,7 +45,7 @@ export function LocationSelector({ isOpen, onClose, message }: LocationSelectorP
           {Object.entries(locations).map(([key, location]) => (
             <button
               key={key}
-              onClick={() => handleSelectLocation(location.whatsapp)}
+              onClick={() => handleSelectLocation(location.whatsapp, location.name)}
               className="w-full p-4 bg-secondary/50 hover:bg-secondary border border-border hover:border-primary/50 rounded-lg transition-all group flex items-center justify-between"
             >
               <div className="flex items-center gap-3">

@@ -21,6 +21,7 @@ export function Services() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
+  const [selectedServicio, setSelectedServicio] = useState("")
 
   const handleReservar = (service: Service, option?: string) => {
     const mensaje = option
@@ -28,6 +29,7 @@ export function Services() {
       : `Hola, me interesa el servicio "${service.title}" (${service.time} - ${service.price}). ¿Podrían darme más información?`
 
     setWhatsappMessage(mensaje)
+    setSelectedServicio(service.title)
     setShowLocationSelector(true)
   }
 
@@ -150,6 +152,7 @@ export function Services() {
         isOpen={showLocationSelector}
         onClose={() => setShowLocationSelector(false)}
         message={whatsappMessage}
+        servicio={selectedServicio}
       />
     </>
   )

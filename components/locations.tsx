@@ -2,7 +2,7 @@
 
 import { MapPin, MessageCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { locations, getWhatsAppLink } from "@/lib/data"
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 const sucursales = [
   {
@@ -23,6 +23,7 @@ const sucursales = [
 
 export function Locations() {
   const handleContactar = (whatsapp: string, sucursal: string) => {
+    trackWhatsAppClick(sucursal)
     window.open(getWhatsAppLink(whatsapp, `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`), "_blank")
   }
 

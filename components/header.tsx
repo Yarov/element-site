@@ -4,12 +4,13 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { locations, getWhatsAppLink } from "@/lib/data"
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleReservar = () => {
+    trackWhatsAppClick(locations.condesa.name)
     window.open(
       getWhatsAppLink(locations.condesa.whatsapp, "Hola, me gustaría agendar una cita en ElementSpa."),
       "_blank",

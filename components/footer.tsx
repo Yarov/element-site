@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Instagram, MessageCircle } from "lucide-react"
-import { locations, getWhatsAppLink } from "@/lib/data"
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 export function Footer() {
 
@@ -27,6 +27,7 @@ export function Footer() {
                 href={getWhatsAppLink(locations.condesa.whatsapp, "Hola, quiero agendar en Roma Norte")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick(locations.condesa.name)}
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <MessageCircle className="h-4 w-4" />
@@ -36,6 +37,7 @@ export function Footer() {
                 href={getWhatsAppLink(locations.coyoacan.whatsapp, "Hola, quiero agendar en Coyoacán")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick(locations.coyoacan.name)}
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <MessageCircle className="h-4 w-4" />

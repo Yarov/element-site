@@ -144,6 +144,23 @@ export const services: Service[] = [
   },
 ]
 
+declare global {
+  interface Window {
+    dataLayer: Record<string, unknown>[]
+  }
+}
+
+export function trackWhatsAppClick(sucursal: string, servicio?: string) {
+  if (typeof window !== 'undefined') {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: 'click_whatsapp',
+      sucursal: sucursal.replace(/\s+/g, '_'),
+      ...(servicio && { servicio: servicio.replace(/\s+/g, '_') }),
+    })
+  }
+}
+
 export function getWhatsAppLink(phone: string, message: string) {
   const encodedMessage = encodeURIComponent(message)
   return `https://wa.me/${phone.replace(/\+/g, "")}?text=${encodedMessage}`

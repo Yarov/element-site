@@ -155,19 +155,20 @@ export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: s
 
   window.dataLayer = window.dataLayer || []
 
-  let navigated = false
-  const navigate = () => {
-    if (navigated) return
-    navigated = true
-    window.open(waUrl, '_blank')
+  // Abrir WhatsApp INMEDIATAMENTE en contexto del click
+  // para que iOS/Android no lo bloquee como popup
+  const waWindow = window.open(waUrl, '_blank')
+
+  // Fallback si el navegador bloqueó el popup
+  if (!waWindow) {
+    window.location.href = waUrl
   }
 
+  // Enviar evento a GTM después — la página sigue viva en background
   window.dataLayer.push({
     event: 'click_whatsapp',
     sucursal: sucursal.replace(/\s+/g, '_'),
     ...(servicio && { servicio: servicio.replace(/\s+/g, '_') }),
-    eventCallback: navigate,
-    eventTimeout: 800,
   })
 }
 

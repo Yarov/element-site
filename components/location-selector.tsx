@@ -14,7 +14,8 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
   if (!isOpen) return null
 
   const handleSelectLocation = (whatsapp: string, locationName: string) => {
-    const waUrl = getWhatsAppLink(whatsapp, message)
+    const finalMessage = message.replace("{sucursal}", locationName)
+    const waUrl = getWhatsAppLink(whatsapp, finalMessage)
     trackWhatsAppClick(locationName, waUrl, servicio)
     onClose()
   }

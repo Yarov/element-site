@@ -44,7 +44,7 @@ export const services: Service[] = [
   {
     id: 1,
     title: "CARICIAS DEL ALMA",
-    seoTitle: "Masaje Sensorial y Relajación Suave para Hombres",
+    seoTitle: "Masaje sensorial suave para despertar el cuerpo con caricias envolventes",
     price: "$1,100",
     time: "30 min",
     description:
@@ -55,7 +55,7 @@ export const services: Service[] = [
   {
     id: 2,
     title: "CONEXIÓN ESENCIAL",
-    seoTitle: "Masaje Relajante de Cuerpo Completo y Alivio de Estrés",
+    seoTitle: "Masaje relajante de cuerpo completo ideal para liberar tensión y estrés",
     price: "$1,350",
     time: "50 min",
     description:
@@ -66,7 +66,7 @@ export const services: Service[] = [
   {
     id: 3,
     title: "ENERGÍA VITAL",
-    seoTitle: "Masaje Descontracturante y Terapia de Tejido Profundo",
+    seoTitle: "Masaje descontracturante profundo que combina fuerza y técnica liberadora",
     price: "$1,550",
     time: "50 min",
     description:
@@ -77,7 +77,7 @@ export const services: Service[] = [
   {
     id: 4,
     title: "PIEL A PIEL",
-    seoTitle: "Masaje Tántrico Sensorial Premium y Contacto Integral",
+    seoTitle: "Masaje tántrico piel a piel con contacto corporal completo y estimulación",
     iconType: "heart",
     description:
       "La experiencia que despierta cada rincón de tu cuerpo comienza con suaves estímulos mientras estas boca abajo; son objetos delicados que recorren tu piel provocando despertar tus sentidos y preparando tu cuerpo para lo que viene. Una vez listo, la terapeuta se deslizará sobre de ti en topless utilizando todo su cuerpo (torso, pecho, brazos y piernas) para darte un masaje íntimo, intenso y muy sensual. Después de unos minutos, la terapeuta te pedirá que gires para continuar con tu masaje piel a piel hasta provocar tu erección y estimularte con sus manos.",
@@ -101,7 +101,7 @@ export const services: Service[] = [
   {
     id: 5,
     title: "FANTASÍA COMPARTIDA",
-    seoTitle: "Experiencia de Relajación Sensual e Interactiva",
+    seoTitle: "Experiencia interactiva y sensual donde tú también participas del masaje",
     iconType: "stars",
     description:
       "Cumple uno de los deseos más prohibidos. Comienza dándole un masaje a tu terapeuta mientras ella te guía con el cuerpo semi desnudo (topless), creando una conexión íntima y única. Después, te relajarás por completo mientras ella toma el control y te brinda un masaje piel a piel caracterizado por la sensualidad y lo estimulante que transformará el momento hasta llevarte a un completo estado de éxtasis y terminando con tu eyaculación.",
@@ -123,7 +123,7 @@ export const services: Service[] = [
   {
     id: 6,
     title: "MASAJE 4 MANOS",
-    seoTitle: "Masaje Tántrico a Cuatro Manos con Dos Terapeutas",
+    seoTitle: "Masaje a cuatro manos con dos terapeutas sincronizadas para máximo placer",
     iconType: "lotus",
     description:
       "Doble contacto, doble placer. Déjate llevar por una experiencia incomparable donde dos terapeutas en topless sincronizan sus cuerpos para despertar todos tus sentidos. En este masaje ambas recorrerán cada parte de tu cuerpo con el suyo dejándote tocar y echando a andar tu imaginación para mantener tu erección el mayor tiempo posible hasta llegar a una estimulación coordinada para que puedas disfrutar de un estado de placer absoluto.",
@@ -170,6 +170,27 @@ export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: s
     sucursal: sucursal.replace(/\s+/g, '_'),
     ...(servicio && { servicio: servicio.replace(/\s+/g, '_') }),
   })
+}
+
+export function getServiceDetail(service: Service): string {
+  return service.price
+    ? `${service.time} - ${service.price}`
+    : `Desde ${service.options?.[0].price}`
+}
+
+export function buildWhatsAppMessage({ page, servicio, detalle }: {
+  page: string
+  servicio?: string
+  detalle?: string
+}): string {
+  const lines = [`Hola, vi la página de ${page} de ElementSpa.`]
+  lines.push("Quiero agendar en la sucursal {sucursal}.")
+  if (servicio) {
+    const info = detalle ? ` (${detalle})` : ""
+    lines.push(`Me interesa: ${servicio}${info}.`)
+  }
+  lines.push("¿Tienen disponibilidad para hoy o mañana?")
+  return lines.join("\n")
 }
 
 export function getWhatsAppLink(phone: string, message: string) {

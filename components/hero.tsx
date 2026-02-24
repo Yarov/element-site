@@ -3,15 +3,14 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { MessageCircle } from "lucide-react"
+import { MessageCircle, CheckCircle } from "lucide-react"
 import { LocationSelector } from "@/components/location-selector"
+import { buildWhatsAppMessage } from "@/lib/data"
 
 export function Hero() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
-  const [whatsappMessage, setWhatsappMessage] = useState("")
 
   const handleReservar = () => {
-    setWhatsappMessage("Hola, me gustaría conocer más sobre los servicios de ElementSpa.")
     setShowLocationSelector(true)
   }
 
@@ -22,7 +21,7 @@ export function Hero() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/dark-luxury-spa-massage-room-with-candles-ambient-.jpg"
-            alt="ElementSpa ambiente"
+            alt="ElementSpa — Spa exclusivo para hombres en CDMX con ambiente de lujo"
             fill
             className="object-cover"
             priority
@@ -37,11 +36,30 @@ export function Hero() {
             </p>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-tight text-balance mb-6">
               Spa Exclusivo para Hombres en CDMX
+              <span className="sr-only"> — Masajes Sensuales y Relajantes en Roma Norte y Coyoacán</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-md leading-relaxed mb-8">
-              Sumérgete en un mundo de sensaciones donde el placer y la relajación se fusionan. Masajes para hombres en
-              la Roma y Coyoacán. Disfruta de un ambiente discreto y sofisticado en el corazón de la CDMX.
+            <p className="text-lg text-muted-foreground max-w-md leading-relaxed mb-6">
+              Déjate llevar por una experiencia donde el placer, la relajación y la conexión con tu cuerpo se
+              convierten en un solo momento. Terapeutas profesionales, ambiente discreto y atención
+              personalizada en cada visita.
             </p>
+
+            {/* Microbeneficios */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                Atención inmediata
+              </span>
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                Horarios extendidos
+              </span>
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                Privacidad 100%
+              </span>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
@@ -57,7 +75,7 @@ export function Hero() {
                 className="px-8 py-6 text-base border-foreground/20 hover:bg-secondary bg-transparent"
                 asChild
               >
-                <a href="#servicios">Ver Servicios</a>
+                <a href="#servicios">Ver todos los servicios</a>
               </Button>
             </div>
 
@@ -83,7 +101,7 @@ export function Hero() {
       <LocationSelector
         isOpen={showLocationSelector}
         onClose={() => setShowLocationSelector(false)}
-        message={whatsappMessage}
+        message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
       />
     </>
   )

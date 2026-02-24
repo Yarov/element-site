@@ -57,10 +57,51 @@ const jsonLd = {
   priceRange: "$1,100 - $5,000 MXN",
   currenciesAccepted: "MXN",
   paymentAccepted: "Cash, Credit Card",
-  areaServed: {
-    "@type": "City",
-    name: "Ciudad de México",
-  },
+  sameAs: [
+    "https://www.instagram.com/elementspa.mx",
+    "https://www.facebook.com/elementspa.mx",
+  ],
+  areaServed: [
+    {
+      "@type": "City",
+      name: "Ciudad de México",
+    },
+    {
+      "@type": "Neighborhood",
+      name: "Roma Norte",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+    {
+      "@type": "Neighborhood",
+      name: "Roma Sur",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+    {
+      "@type": "Neighborhood",
+      name: "Condesa",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+    {
+      "@type": "Neighborhood",
+      name: "Coyoacán",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+    {
+      "@type": "Neighborhood",
+      name: "Del Valle",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+    {
+      "@type": "Neighborhood",
+      name: "Polanco",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+    {
+      "@type": "Neighborhood",
+      name: "San Ángel",
+      containedInPlace: { "@type": "City", name: "Ciudad de México" },
+    },
+  ],
   openingHoursSpecification: {
     "@type": "OpeningHoursSpecification",
     dayOfWeek: [

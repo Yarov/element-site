@@ -9,8 +9,8 @@ export function Footer() {
   return (
     <footer className="bg-secondary py-16">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
-          <div className="md:col-span-2">
+        <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-12 mb-12">
+          <div className="sm:col-span-2">
             <Link href="/" className="text-3xl font-serif tracking-wide mb-4 block">
               Element<span className="text-primary">Spa</span>
             </Link>
@@ -21,36 +21,31 @@ export function Footer() {
           </div>
 
           <div>
+            <h4 className="font-medium mb-4 text-foreground">Servicios</h4>
+            <div className="flex flex-col gap-3">
+              <Link href="/masajes-para-hombres-cdmx" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Masajes para Hombres
+              </Link>
+              <Link href="/masaje-sensorial-hombres" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Masaje Sensorial
+              </Link>
+              <Link href="/masaje-tantrico-hombres-cdmx" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Masaje Tántrico
+              </Link>
+            </div>
+          </div>
+
+          <div>
             <h4 className="font-medium mb-4 text-foreground">Sucursales</h4>
             <div className="flex flex-col gap-3">
-              <a
-                href={getWhatsAppLink(locations.condesa.whatsapp, "Hola, quiero agendar en Roma Norte")}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.preventDefault()
-                  const waUrl = getWhatsAppLink(locations.condesa.whatsapp, "Hola, quiero agendar en Roma Norte")
-                  trackWhatsAppClick(locations.condesa.name, waUrl)
-                }}
-                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
-              >
+              <Link href="/spa-para-hombres-roma-norte" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 Roma Norte
-              </a>
-              <a
-                href={getWhatsAppLink(locations.coyoacan.whatsapp, "Hola, quiero agendar en Coyoacán")}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.preventDefault()
-                  const waUrl = getWhatsAppLink(locations.coyoacan.whatsapp, "Hola, quiero agendar en Coyoacán")
-                  trackWhatsAppClick(locations.coyoacan.name, waUrl)
-                }}
-                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
-              >
+              </Link>
+              <Link href="/spa-para-hombres-coyoacan" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 Coyoacán
-              </a>
+              </Link>
             </div>
           </div>
 

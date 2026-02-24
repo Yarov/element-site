@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { Plus, Minus, Feather, Infinity, Flame, Heart, Sparkles, Flower2, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { services, type Service } from "@/lib/data"
+import { services, type Service, buildWhatsAppMessage, getServiceDetail } from "@/lib/data"
 import { LocationSelector } from "@/components/location-selector"
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -24,11 +24,8 @@ export function Services() {
   const [selectedServicio, setSelectedServicio] = useState("")
 
   const handleReservar = (service: Service, option?: string) => {
-    const mensaje = option
-      ? `Hola, me interesa el servicio "${service.title}" - ${option}. ¿Podrían darme más información?`
-      : `Hola, me interesa el servicio "${service.title}" (${service.time} - ${service.price}). ¿Podrían darme más información?`
-
-    setWhatsappMessage(mensaje)
+    const detalle = option || getServiceDetail(service)
+    setWhatsappMessage(buildWhatsAppMessage({ page: "servicios", servicio: service.title, detalle }))
     setSelectedServicio(service.title)
     setShowLocationSelector(true)
   }
@@ -40,8 +37,12 @@ export function Services() {
           <div className="max-w-2xl mb-16">
             <p className="text-sm tracking-[0.3em] text-primary uppercase mb-4">Nuestros Servicios</p>
             <h2 className="text-4xl md:text-5xl font-serif leading-tight text-balance">
-              Experiencias diseñadas para tu placer
+              Servicios de Masaje para Hombres
             </h2>
+            <p className="text-muted-foreground mt-4 leading-relaxed">
+              Elige entre 6 experiencias de masaje diseñadas exclusivamente para caballeros. Desde relajación
+              profunda hasta estimulación sensorial completa.
+            </p>
           </div>
 
           <div className="border-t border-border">
@@ -53,9 +54,12 @@ export function Services() {
                 >
                   <div className="flex items-center gap-6">
                     <span className="text-primary">{iconMap[service.iconType]}</span>
-                    <h3 className="text-xl md:text-2xl font-serif group-hover:text-primary transition-colors">
-                      {service.title}<span className="sr-only">{` – ${service.seoTitle}`}</span>
-                    </h3>
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-serif group-hover:text-primary transition-colors">
+                        {service.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1 font-sans">{service.seoTitle}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-6">
                     {service.price && (

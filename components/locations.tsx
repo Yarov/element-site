@@ -23,8 +23,8 @@ const sucursales = [
 
 export function Locations() {
   const handleContactar = (whatsapp: string, sucursal: string) => {
-    trackWhatsAppClick(sucursal)
-    window.open(getWhatsAppLink(whatsapp, `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`), "_blank")
+    const waUrl = getWhatsAppLink(whatsapp, `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`)
+    trackWhatsAppClick(sucursal, waUrl)
   }
 
   return (

@@ -27,7 +27,11 @@ export function Footer() {
                 href={getWhatsAppLink(locations.condesa.whatsapp, "Hola, quiero agendar en Roma Norte")}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackWhatsAppClick(locations.condesa.name)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  const waUrl = getWhatsAppLink(locations.condesa.whatsapp, "Hola, quiero agendar en Roma Norte")
+                  trackWhatsAppClick(locations.condesa.name, waUrl)
+                }}
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <MessageCircle className="h-4 w-4" />
@@ -37,7 +41,11 @@ export function Footer() {
                 href={getWhatsAppLink(locations.coyoacan.whatsapp, "Hola, quiero agendar en Coyoacán")}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackWhatsAppClick(locations.coyoacan.name)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  const waUrl = getWhatsAppLink(locations.coyoacan.whatsapp, "Hola, quiero agendar en Coyoacán")
+                  trackWhatsAppClick(locations.coyoacan.name, waUrl)
+                }}
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <MessageCircle className="h-4 w-4" />

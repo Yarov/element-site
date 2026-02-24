@@ -150,15 +150,25 @@ declare global {
   }
 }
 
-export function trackWhatsAppClick(sucursal: string, servicio?: string) {
-  if (typeof window !== 'undefined') {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({
-      event: 'click_whatsapp',
-      sucursal: sucursal.replace(/\s+/g, '_'),
-      ...(servicio && { servicio: servicio.replace(/\s+/g, '_') }),
-    })
+export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: string) {
+  if (typeof window === 'undefined') return
+
+  window.dataLayer = window.dataLayer || []
+
+  let navigated = false
+  const navigate = () => {
+    if (navigated) return
+    navigated = true
+    window.open(waUrl, '_blank')
   }
+
+  window.dataLayer.push({
+    event: 'click_whatsapp',
+    sucursal: sucursal.replace(/\s+/g, '_'),
+    ...(servicio && { servicio: servicio.replace(/\s+/g, '_') }),
+    eventCallback: navigate,
+    eventTimeout: 800,
+  })
 }
 
 export function getWhatsAppLink(phone: string, message: string) {

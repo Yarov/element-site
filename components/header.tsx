@@ -10,11 +10,8 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleReservar = () => {
-    trackWhatsAppClick(locations.condesa.name)
-    window.open(
-      getWhatsAppLink(locations.condesa.whatsapp, "Hola, me gustaría agendar una cita en ElementSpa."),
-      "_blank",
-    )
+    const waUrl = getWhatsAppLink(locations.condesa.whatsapp, "Hola, me gustaría agendar una cita en ElementSpa.")
+    trackWhatsAppClick(locations.condesa.name, waUrl)
   }
 
   return (

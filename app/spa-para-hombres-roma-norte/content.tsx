@@ -14,24 +14,26 @@ const localJsonLd = {
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
   name: "ElementSpa Roma Norte",
-  description:
-    "Spa exclusivo para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos.",
   url: "https://elementspa.mx/spa-para-hombres-roma-norte",
-  telephone: "+525516793129",
   image: "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
-  priceRange: "$1,100 - $5,000 MXN",
+  description:
+    "Spa para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos exclusivos para caballeros en un ambiente privado y discreto.",
+  telephone: "+525516793129",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Roma Norte",
-    addressRegion: "Ciudad de México",
+    addressRegion: "CDMX",
     addressCountry: "MX",
   },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    opens: "11:00",
-    closes: "22:00",
-  },
+  areaServed: ["Roma Norte", "Roma Sur", "Condesa", "Juárez", "Del Valle", "Polanco"],
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "11:00",
+      closes: "22:00",
+    },
+  ],
 }
 
 export default function SpaRomaNortePage() {

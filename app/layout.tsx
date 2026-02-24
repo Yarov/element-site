@@ -45,195 +45,56 @@ export const metadata: Metadata = {
   },
 }
 
+const ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+const HOURS = { "@type": "OpeningHoursSpecification" as const, dayOfWeek: ALL_DAYS, opens: "11:00", closes: "22:00" }
+
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "HealthAndBeautyBusiness",
+  "@type": "Organization",
   name: "ElementSpa",
-  description:
-    "Spa exclusivo para hombres en CDMX. Masajes relajantes, descontracturantes y sensoriales en un ambiente discreto y sofisticado.",
   url: "https://elementspa.mx",
-  telephone: "+525516793129",
-  image: "https://elementspa.mx/dark-luxury-spa-massage-room-with-candles-ambient-.jpg",
-  priceRange: "$1,100 - $5,000 MXN",
-  currenciesAccepted: "MXN",
-  paymentAccepted: "Cash, Credit Card",
+  logo: "https://elementspa.mx/placeholder-logo.png",
+  description:
+    "Spa exclusivo para hombres en CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos en Roma Norte y Coyoacán. Atención discreta y profesional para caballeros.",
   sameAs: [
     "https://www.instagram.com/elementspa.mx",
-    "https://www.facebook.com/elementspa.mx",
   ],
-  areaServed: [
-    {
-      "@type": "City",
-      name: "Ciudad de México",
-    },
-    {
-      "@type": "Neighborhood",
-      name: "Roma Norte",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-    {
-      "@type": "Neighborhood",
-      name: "Roma Sur",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-    {
-      "@type": "Neighborhood",
-      name: "Condesa",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-    {
-      "@type": "Neighborhood",
-      name: "Coyoacán",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-    {
-      "@type": "Neighborhood",
-      name: "Del Valle",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-    {
-      "@type": "Neighborhood",
-      name: "Polanco",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-    {
-      "@type": "Neighborhood",
-      name: "San Ángel",
-      containedInPlace: { "@type": "City", name: "Ciudad de México" },
-    },
-  ],
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ],
-    opens: "11:00",
-    closes: "22:00",
-  },
   department: [
     {
       "@type": "HealthAndBeautyBusiness",
       name: "ElementSpa Roma Norte",
+      image: "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
+      url: "https://elementspa.mx/spa-para-hombres-roma-norte",
+      description:
+        "Spa exclusivo para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos para caballeros. Privacidad total y atención profesional.",
+      telephone: "+525516793129",
       address: {
         "@type": "PostalAddress",
         addressLocality: "Roma Norte",
-        addressRegion: "Ciudad de México",
+        addressRegion: "CDMX",
         addressCountry: "MX",
       },
-      telephone: "+525516793129",
-      openingHoursSpecification: {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ],
-        opens: "11:00",
-        closes: "22:00",
-      },
+      areaServed: ["Roma Norte", "Roma Sur", "Condesa", "Juárez", "Del Valle", "Polanco"],
+      openingHoursSpecification: [HOURS],
     },
     {
       "@type": "HealthAndBeautyBusiness",
       name: "ElementSpa Coyoacán",
+      image: "https://elementspa.mx/man-relaxing-spa-treatment-massage.jpg",
+      url: "https://elementspa.mx/spa-para-hombres-coyoacan",
+      description:
+        "Spa masculino en Coyoacán, CDMX. Masajes para hombres con enfoque sensorial, relajante y tántrico en un ambiente privado y discreto.",
+      telephone: "+525645886177",
       address: {
         "@type": "PostalAddress",
         addressLocality: "Coyoacán",
-        addressRegion: "Ciudad de México",
+        addressRegion: "CDMX",
         addressCountry: "MX",
       },
-      telephone: "+525645886177",
-      openingHoursSpecification: {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ],
-        opens: "11:00",
-        closes: "22:00",
-      },
+      areaServed: ["Coyoacán", "San Ángel", "Del Valle", "Portales", "Anzures"],
+      openingHoursSpecification: [HOURS],
     },
   ],
-  hasOfferCatalog: {
-    "@type": "OfferCatalog",
-    name: "Servicios de Masaje",
-    itemListElement: [
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Caricias del Alma",
-          description: "Masaje sensorial de 30 minutos con caricias suaves.",
-        },
-        price: "1100",
-        priceCurrency: "MXN",
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Conexión Esencial",
-          description: "Masaje relajante de cuerpo completo de 50 minutos.",
-        },
-        price: "1350",
-        priceCurrency: "MXN",
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Energía Vital",
-          description: "Masaje descontracturante de 50 minutos.",
-        },
-        price: "1550",
-        priceCurrency: "MXN",
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Piel a Piel",
-          description: "Masaje sensorial e íntimo desde 50 minutos.",
-        },
-        price: "2250",
-        priceCurrency: "MXN",
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Fantasía Compartida",
-          description: "Experiencia de masaje interactivo desde 50 minutos.",
-        },
-        price: "3000",
-        priceCurrency: "MXN",
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Masaje 4 Manos",
-          description: "Masaje sincronizado con dos terapeutas desde 50 minutos.",
-        },
-        price: "4000",
-        priceCurrency: "MXN",
-      },
-    ],
-  },
 }
 
 export default function RootLayout({

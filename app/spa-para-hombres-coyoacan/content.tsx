@@ -14,24 +14,26 @@ const localJsonLd = {
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
   name: "ElementSpa Coyoacán",
-  description:
-    "Spa exclusivo para hombres en Coyoacán, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos en ambiente privado.",
   url: "https://elementspa.mx/spa-para-hombres-coyoacan",
-  telephone: "+525645886177",
   image: "https://elementspa.mx/man-relaxing-spa-treatment-massage.jpg",
-  priceRange: "$1,100 - $5,000 MXN",
+  description:
+    "Spa masculino en Coyoacán, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos diseñados exclusivamente para hombres en un ambiente privado.",
+  telephone: "+525645886177",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Coyoacán",
-    addressRegion: "Ciudad de México",
+    addressRegion: "CDMX",
     addressCountry: "MX",
   },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    opens: "11:00",
-    closes: "22:00",
-  },
+  areaServed: ["Coyoacán", "San Ángel", "Del Valle", "Portales", "Anzures"],
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "11:00",
+      closes: "22:00",
+    },
+  ],
 }
 
 export default function SpaCoyoacanPage() {

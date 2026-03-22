@@ -1,9 +1,15 @@
 /**
  * Meta Pixel + CAPI tracking with event deduplication.
  *
- * - Browser: pushes to dataLayer so GTM fires the Pixel tag
+ * - Browser: calls fbq() directly with eventID for dedup + pushes to dataLayer for GA4
  * - Server: sends the same event via CAPI with matching event_id
  */
+
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void
+  }
+}
 
 function generateEventId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
@@ -15,6 +21,12 @@ function getFbCookies(): { fbp?: string; fbc?: string } {
   const fbp = cookies.find((c) => c.startsWith("_fbp="))?.split("=")[1]
   const fbc = cookies.find((c) => c.startsWith("_fbc="))?.split("=")[1]
   return { fbp, fbc }
+}
+
+function fbqTrack(eventName: string, params: Record<string, unknown>, eventId: string) {
+  if (typeof window !== "undefined" && window.fbq) {
+    window.fbq("track", eventName, params, { eventID: eventId })
+  }
 }
 
 async function sendServerEvent(payload: {
@@ -44,7 +56,13 @@ export function trackLead(sucursal: string, servicio?: string) {
   const eventId = generateEventId()
   const { fbp, fbc } = getFbCookies()
 
-  // Browser: push to dataLayer for GTM → Pixel
+  // Browser: fbq() direct call with eventID for deduplication
+  fbqTrack("Lead", {
+    content_name: servicio || "general",
+    content_category: sucursal,
+  }, eventId)
+
+  // Browser: push to dataLayer for GA4/GTM
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push({
     event: "click_whatsapp",
@@ -74,14 +92,21 @@ export function trackViewContent(contentName: string, contentCategory?: string, 
   const eventId = generateEventId()
   const { fbp, fbc } = getFbCookies()
 
-  // Browser: push to dataLayer for GTM
+  const customData = {
+    content_name: contentName,
+    ...(contentCategory && { content_category: contentCategory }),
+    ...(value && { value, currency: "MXN" }),
+  }
+
+  // Browser: fbq() direct call with eventID for deduplication
+  fbqTrack("ViewContent", customData, eventId)
+
+  // Browser: push to dataLayer for GA4/GTM
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push({
     event: "view_content",
     event_id: eventId,
-    content_name: contentName,
-    ...(contentCategory && { content_category: contentCategory }),
-    ...(value && { value, currency: "MXN" }),
+    ...customData,
   })
 
   // Server: CAPI
@@ -106,6 +131,13 @@ export function trackContact(sucursal: string, method: string) {
   const eventId = generateEventId()
   const { fbp, fbc } = getFbCookies()
 
+  // Browser: fbq() direct call with eventID for deduplication
+  fbqTrack("Contact", {
+    content_category: sucursal,
+    content_name: method,
+  }, eventId)
+
+  // Browser: push to dataLayer for GA4/GTM
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push({
     event: "contact",

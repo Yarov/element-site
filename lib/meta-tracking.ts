@@ -24,8 +24,24 @@ function getFbCookies(): { fbp?: string; fbc?: string } {
 }
 
 function fbqTrack(eventName: string, params: Record<string, unknown>, eventId: string) {
-  if (typeof window !== "undefined" && window.fbq) {
-    window.fbq("track", eventName, params, { eventID: eventId })
+  if (typeof window === "undefined") return
+
+  const fire = () => window.fbq?.("track", eventName, params, { eventID: eventId })
+
+  if (window.fbq) {
+    fire()
+  } else {
+    // GTM loads fbq async — retry until available (max 5s)
+    let attempts = 0
+    const interval = setInterval(() => {
+      attempts++
+      if (window.fbq) {
+        fire()
+        clearInterval(interval)
+      } else if (attempts >= 25) {
+        clearInterval(interval)
+      }
+    }, 200)
   }
 }
 

@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { LocationSelector } from "@/components/location-selector"
 import { buildWhatsAppMessage } from "@/lib/data"
+import { ViewContentTracker } from "@/components/view-content-tracker"
 
 const localJsonLd = {
   "@context": "https://schema.org",
@@ -81,6 +82,7 @@ export default function MasajeTantricoPage() {
   return (
     <main className="min-h-screen">
       <Header />
+      <ViewContentTracker contentName="Masaje Tántrico" contentCategory="servicios" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localJsonLd) }}

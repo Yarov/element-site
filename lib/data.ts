@@ -1,3 +1,5 @@
+import { trackLead } from "@/lib/meta-tracking"
+
 export const locations = {
   condesa: {
     name: "Roma Norte",
@@ -153,8 +155,6 @@ declare global {
 export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: string) {
   if (typeof window === 'undefined') return
 
-  window.dataLayer = window.dataLayer || []
-
   // Abrir WhatsApp INMEDIATAMENTE en contexto del click
   // para que iOS/Android no lo bloquee como popup
   const waWindow = window.open(waUrl, '_blank')
@@ -164,12 +164,8 @@ export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: s
     window.location.href = waUrl
   }
 
-  // Enviar evento a GTM después — la página sigue viva en background
-  window.dataLayer.push({
-    event: 'click_whatsapp',
-    sucursal: sucursal.replace(/\s+/g, '_'),
-    ...(servicio && { servicio: servicio.replace(/\s+/g, '_') }),
-  })
+  // Enviar Lead event con deduplicación browser + server (CAPI)
+  trackLead(sucursal, servicio)
 }
 
 export function getServiceDetail(service: Service): string {

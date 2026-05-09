@@ -155,17 +155,25 @@ declare global {
 export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: string) {
   if (typeof window === 'undefined') return
 
-  // Abrir WhatsApp INMEDIATAMENTE en contexto del click
-  // para que iOS/Android no lo bloquee como popup
+  // 1) Disparar tracking PRIMERO (sync) — fbq + fetch keepalive a /api/meta-capi.
+  //    trackLead retorna inmediato; el fetch se inicia en este tick síncrono y
+  //    queda en background con keepalive=true, por lo que sobrevive a la
+  //    navegación posterior (window.open / location.href).
+  //
+  //    Si se invoca window.open ANTES, en iOS Safari el cambio de contexto
+  //    aborta el fetch aunque tenga keepalive y se pierde el evento CAPI
+  //    server-side (~50% de los Lead events en mobile).
+  trackLead(sucursal, servicio)
+
+  // 2) Abrir WhatsApp INMEDIATAMENTE en el siguiente statement síncrono del
+  //    mismo handler de click, para preservar el "user gesture" y evitar
+  //    que iOS/Android bloqueen el popup.
   const waWindow = window.open(waUrl, '_blank')
 
-  // Fallback si el navegador bloqueó el popup
+  // 3) Fallback si el navegador bloqueó el popup
   if (!waWindow) {
     window.location.href = waUrl
   }
-
-  // Enviar Lead event con deduplicación browser + server (CAPI)
-  trackLead(sucursal, servicio)
 }
 
 export function getServiceDetail(service: Service): string {

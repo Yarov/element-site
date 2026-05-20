@@ -67,7 +67,7 @@ const jsonLd = {
       url: "https://elementspa.mx/spa-para-hombres-roma-norte",
       description:
         "Spa exclusivo para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos para caballeros. Privacidad total y atención profesional.",
-      telephone: "+525516793129",
+      telephone: "+525573830636",
       address: {
         "@type": "PostalAddress",
         addressLocality: "Roma Norte",

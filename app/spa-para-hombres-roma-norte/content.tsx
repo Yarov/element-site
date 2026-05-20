@@ -19,7 +19,7 @@ const localJsonLd = {
   image: "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
   description:
     "Spa para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos exclusivos para caballeros en un ambiente privado y discreto.",
-  telephone: "+525516793129",
+  telephone: "+525573830636",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Roma Norte",

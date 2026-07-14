@@ -57,7 +57,7 @@ afterEach(() => {
 
 describe("trackWhatsAppClick — critical execution order (iOS/Android safety)", () => {
   it("initiates fetch to /api/meta-capi BEFORE window.open", () => {
-    const waUrl = "https://wa.me/525573830636?text=hola"
+    const waUrl = "https://wa.me/525647114561?text=hola"
     trackWhatsAppClick("Roma Norte", waUrl, "Caricias del Alma")
 
     const fetchIdx = calls.findIndex(
@@ -82,7 +82,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
   })
 
   it("opens WhatsApp URL in new tab", () => {
-    const waUrl = "https://wa.me/525573830636?text=hola"
+    const waUrl = "https://wa.me/525647114561?text=hola"
     trackWhatsAppClick("Roma Norte", waUrl)
 
     const openCall = calls.find((c) => c.kind === "open")
@@ -141,7 +141,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
       },
     })
 
-    trackWhatsAppClick("Roma Norte", "https://wa.me/525573830636?text=x", "Conexión Esencial")
+    trackWhatsAppClick("Roma Norte", "https://wa.me/525647114561?text=x", "Conexión Esencial")
 
     const fbqIdx = calls.findIndex((c) => c.kind === "fbq")
     const fetchIdx = calls.findIndex((c) => c.kind === "fetch")
@@ -167,7 +167,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
     )
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch
 
-    trackWhatsAppClick("Roma Norte", "https://wa.me/525573830636?text=x")
+    trackWhatsAppClick("Roma Norte", "https://wa.me/525647114561?text=x")
 
     expect(fetchMock).toHaveBeenCalled()
     const init = fetchMock.mock.calls[0]?.[1] as (RequestInit & { keepalive?: boolean }) | undefined
@@ -196,7 +196,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
     // Hard to fully simulate SSR in jsdom; assert function tolerates being called
     // multiple times without throwing — proxy for robustness.
     expect(() =>
-      trackWhatsAppClick("Roma Norte", "https://wa.me/525573830636?text=x"),
+      trackWhatsAppClick("Roma Norte", "https://wa.me/525647114561?text=x"),
     ).not.toThrow()
   })
 })

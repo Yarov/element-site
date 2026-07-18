@@ -7,7 +7,7 @@ export const locations = {
   },
   coyoacan: {
     name: "Coyoacán",
-    whatsapp: "+525645886177",
+    whatsapp: "+525647114561",
   },
 }
 

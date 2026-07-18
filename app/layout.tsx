@@ -84,7 +84,7 @@ const jsonLd = {
       url: "https://elementspa.mx/spa-para-hombres-coyoacan",
       description:
         "Spa masculino en Coyoacán, CDMX. Masajes para hombres con enfoque sensorial, relajante y tántrico en un ambiente privado y discreto.",
-      telephone: "+525645886177",
+      telephone: "+525647114561",
       address: {
         "@type": "PostalAddress",
         addressLocality: "Coyoacán",

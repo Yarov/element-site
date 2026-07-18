@@ -71,7 +71,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
   })
 
   it("fires fbq Lead BEFORE window.open", () => {
-    trackWhatsAppClick("Coyoacán", "https://wa.me/525645886177?text=hola")
+    trackWhatsAppClick("Coyoacán", "https://wa.me/525647114561?text=hola")
 
     const fbqIdx = calls.findIndex((c) => c.kind === "fbq" && c.eventName === "Lead")
     const openIdx = calls.findIndex((c) => c.kind === "open")
@@ -110,7 +110,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
       },
     })
 
-    const waUrl = "https://wa.me/525645886177?text=hola"
+    const waUrl = "https://wa.me/525647114561?text=hola"
     trackWhatsAppClick("Coyoacán", waUrl)
 
     expect(hrefSet).toBe(waUrl)
@@ -184,7 +184,7 @@ describe("trackWhatsAppClick — critical execution order (iOS/Android safety)",
     })
     globalThis.fetch = fetchMock as typeof globalThis.fetch
 
-    trackWhatsAppClick("Coyoacán", "https://wa.me/525645886177?text=x", "Energía Vital")
+    trackWhatsAppClick("Coyoacán", "https://wa.me/525647114561?text=x", "Energía Vital")
 
     const lastBody = (fetchMock as unknown as { lastBody: { custom_data: Record<string, unknown> } })
       .lastBody

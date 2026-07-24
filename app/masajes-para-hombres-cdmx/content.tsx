@@ -39,6 +39,38 @@ const localJsonLd = {
   },
 }
 
+const faqs = [
+  {
+    q: "¿Cuál es el mejor masaje para principiantes?",
+    a: "Si es tu primera vez, te recomendamos Conexión Esencial. Es un masaje relajante de cuerpo completo que combina presión perfecta con un ritmo envolvente. Es ideal para conocer el estilo de ElementSpa sin una experiencia demasiado intensa.",
+  },
+  {
+    q: "¿Cuál es la diferencia entre masaje sensorial y tántrico?",
+    a: "El masaje sensorial (Caricias del Alma) se enfoca en estímulos suaves con las yemas de los dedos y uñas sobre la piel. El tántrico (Piel a Piel, Fantasía Compartida) involucra contacto corporal completo donde la terapeuta usa su cuerpo para el masaje. Ambos incluyen estimulación final.",
+  },
+  {
+    q: "¿Los precios incluyen todo?",
+    a: "Sí, nuestros precios incluyen la experiencia completa sin cargos ocultos. Opcionalmente puedes agregar 10 minutos extra ($300) o una estimulación adicional ($350) a cualquier servicio.",
+  },
+  {
+    q: "¿Puedo elegir a mi terapeuta?",
+    a: "La disponibilidad de terapeutas varía según el horario y la sucursal. Te recomendamos contactarnos por WhatsApp con anticipación para conocer la disponibilidad y encontrar el mejor horario para ti.",
+  },
+]
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.a,
+    },
+  })),
+}
+
 export default function MasajesParaHombresPage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
@@ -57,6 +89,10 @@ export default function MasajesParaHombresPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       {/* Hero */}
@@ -182,7 +218,7 @@ export default function MasajesParaHombresPage() {
               "Terapeutas profesionales con técnicas sensoriales avanzadas",
               "Ambiente 100% privado y discreto en cada sesión",
               "Dos sucursales en CDMX: Roma Norte y Coyoacán",
-              "Horario extendido de 11:00 a 22:00, los 7 días",
+              "Horario extendido de 11:00 a 19:00, los 7 días",
               "Reserva fácil y rápida por WhatsApp",
             ].map((benefit) => (
               <div key={benefit} className="flex items-start gap-3 p-4 bg-card rounded-lg border border-border">
@@ -201,24 +237,7 @@ export default function MasajesParaHombresPage() {
             Preguntas frecuentes sobre nuestros masajes
           </h2>
           <div className="space-y-6">
-            {[
-              {
-                q: "¿Cuál es el mejor masaje para principiantes?",
-                a: "Si es tu primera vez, te recomendamos Conexión Esencial. Es un masaje relajante de cuerpo completo que combina presión perfecta con un ritmo envolvente. Es ideal para conocer el estilo de ElementSpa sin una experiencia demasiado intensa.",
-              },
-              {
-                q: "¿Cuál es la diferencia entre masaje sensorial y tántrico?",
-                a: "El masaje sensorial (Caricias del Alma) se enfoca en estímulos suaves con las yemas de los dedos y uñas sobre la piel. El tántrico (Piel a Piel, Fantasía Compartida) involucra contacto corporal completo donde la terapeuta usa su cuerpo para el masaje. Ambos incluyen estimulación final.",
-              },
-              {
-                q: "¿Los precios incluyen todo?",
-                a: "Sí, nuestros precios incluyen la experiencia completa sin cargos ocultos. Opcionalmente puedes agregar 10 minutos extra ($300) o una estimulación adicional ($350) a cualquier servicio.",
-              },
-              {
-                q: "¿Puedo elegir a mi terapeuta?",
-                a: "La disponibilidad de terapeutas varía según el horario y la sucursal. Te recomendamos contactarnos por WhatsApp con anticipación para conocer la disponibilidad y encontrar el mejor horario para ti.",
-              },
-            ].map((faq) => (
+            {faqs.map((faq) => (
               <div key={faq.q} className="border-b border-border pb-6">
                 <h3 className="font-medium mb-2">{faq.q}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>

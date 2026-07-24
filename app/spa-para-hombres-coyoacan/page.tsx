@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Spa Masculino en Coyoacán — Masajes Exclusivos para Caballeros | ElementSpa",
+  title: "Spa Masculino en Coyoacán — Masajes Exclusivos para Caballeros",
   description:
     "ElementSpa Coyoacán: masajes sensoriales, relajantes y tántricos exclusivos para hombres. Ambiente privado, terapeutas profesionales y atención personalizada. Reserva por WhatsApp.",
   alternates: {

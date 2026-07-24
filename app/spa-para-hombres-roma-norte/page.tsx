@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Spa para Hombres en Roma Norte — Masajes Exclusivos | ElementSpa",
+  title: "Spa para Hombres en Roma Norte — Masajes Exclusivos",
   description:
     "Visita ElementSpa en Roma Norte, CDMX. Masajes sensoriales, relajantes y tántricos exclusivos para caballeros. Ambiente discreto, terapeutas profesionales. Reserva por WhatsApp.",
   alternates: {

@@ -10,14 +10,14 @@ const sucursales = [
     name: "Roma Norte",
     address: "Zona Roma Norte, CDMX",
     whatsapp: locations.condesa.whatsapp,
-    hours: "Lun - Dom: 11:00 - 22:00",
+    hours: "Lun - Dom: 11:00 - 19:00",
   },
   {
     id: "coyoacan",
     name: "Coyoacán",
     address: "Zona Coyoacán, CDMX",
     whatsapp: locations.coyoacan.whatsapp,
-    hours: "Lun - Dom: 11:00 - 22:00",
+    hours: "Lun - Dom: 11:00 - 19:00",
   },
 ]
 

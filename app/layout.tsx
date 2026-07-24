@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 }
 
 const ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-const HOURS = { "@type": "OpeningHoursSpecification" as const, dayOfWeek: ALL_DAYS, opens: "11:00", closes: "22:00" }
+const HOURS = { "@type": "OpeningHoursSpecification" as const, dayOfWeek: ALL_DAYS, opens: "11:00", closes: "19:00" }
 
 const jsonLd = {
   "@context": "https://schema.org",

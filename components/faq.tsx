@@ -16,7 +16,7 @@ const faqs = [
   {
     question: "¿Es necesario hacer cita previa?",
     answer:
-      "Sí, recomendamos agendar tu cita por WhatsApp para garantizar disponibilidad y brindarte la mejor atención. El proceso es rápido: elige tu sucursal, envíanos un mensaje y te confirmamos en minutos. Atendemos los 7 días de la semana de 11:00 a 22:00.",
+      "Sí, recomendamos agendar tu cita por WhatsApp para garantizar disponibilidad y brindarte la mejor atención. El proceso es rápido: elige tu sucursal, envíanos un mensaje y te confirmamos en minutos. Atendemos los 7 días de la semana de 11:00 a 19:00.",
   },
   {
     question: "¿Dónde están ubicados?",

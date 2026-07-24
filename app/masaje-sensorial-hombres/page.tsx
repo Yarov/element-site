@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Masaje Sensorial para Hombres — Técnicas Suaves y Profundas | ElementSpa",
+  title: "Masaje Sensorial para Hombres — Técnicas Suaves y Profundas",
   description:
     "Masaje sensorial para hombres en CDMX. Caricias suaves, estímulos con yemas de los dedos y técnicas envolventes que despiertan cada fibra de tu piel. Roma Norte y Coyoacán.",
   alternates: {

@@ -32,9 +32,37 @@ const localJsonLd = {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       opens: "11:00",
-      closes: "22:00",
+      closes: "19:00",
     },
   ],
+}
+
+const faqs = [
+  {
+    q: "¿Cómo llego a ElementSpa Roma Norte?",
+    a: "Nuestra sucursal se encuentra en la colonia Roma Norte, una de las zonas más accesibles de la CDMX. Puedes llegar fácilmente en Metrobús (estación Sonora o Insurgentes), Metro (Insurgentes, Línea 1) o en auto particular con estacionamiento público cercano.",
+  },
+  {
+    q: "¿Necesito cita previa para Roma Norte?",
+    a: "Sí, recomendamos reservar con anticipación por WhatsApp para garantizar disponibilidad de horario y terapeuta. El proceso es rápido: envíanos un mensaje y te confirmamos en minutos.",
+  },
+  {
+    q: "¿Qué formas de pago aceptan en esta sucursal?",
+    a: "En nuestra sucursal de Roma Norte aceptamos efectivo y tarjetas de crédito o débito. El pago se realiza al finalizar tu servicio, sin cargos adicionales ni propinas obligatorias.",
+  },
+]
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.a,
+    },
+  })),
 }
 
 export default function SpaRomaNortePage() {
@@ -55,6 +83,10 @@ export default function SpaRomaNortePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       {/* Hero */}
@@ -117,7 +149,7 @@ export default function SpaRomaNortePage() {
                 </span>
                 <span className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-primary" />
-                  Lunes a Domingo: 11:00 — 22:00
+                  Lunes a Domingo: 11:00 — 19:00
                 </span>
               </div>
             </div>
@@ -194,7 +226,7 @@ export default function SpaRomaNortePage() {
               "Ambiente exclusivo diseñado para máxima privacidad",
               "Atención inmediata — reserva por WhatsApp y llega sin esperas",
               "Todas las experiencias de masaje disponibles en esta sucursal",
-              "Horario amplio: 7 días a la semana de 11:00 a 22:00",
+              "Horario amplio: 7 días a la semana de 11:00 a 19:00",
             ].map((benefit) => (
               <div key={benefit} className="flex items-start gap-3 p-4">
                 <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
@@ -212,20 +244,7 @@ export default function SpaRomaNortePage() {
             Preguntas sobre ElementSpa Roma Norte
           </h2>
           <div className="space-y-6">
-            {[
-              {
-                q: "¿Cómo llego a ElementSpa Roma Norte?",
-                a: "Nuestra sucursal se encuentra en la colonia Roma Norte, una de las zonas más accesibles de la CDMX. Puedes llegar fácilmente en Metrobús (estación Sonora o Insurgentes), Metro (Insurgentes, Línea 1) o en auto particular con estacionamiento público cercano.",
-              },
-              {
-                q: "¿Necesito cita previa para Roma Norte?",
-                a: "Sí, recomendamos reservar con anticipación por WhatsApp para garantizar disponibilidad de horario y terapeuta. El proceso es rápido: envíanos un mensaje y te confirmamos en minutos.",
-              },
-              {
-                q: "¿Qué formas de pago aceptan en esta sucursal?",
-                a: "En nuestra sucursal de Roma Norte aceptamos efectivo y tarjetas de crédito o débito. El pago se realiza al finalizar tu servicio, sin cargos adicionales ni propinas obligatorias.",
-              },
-            ].map((faq) => (
+            {faqs.map((faq) => (
               <div key={faq.q} className="border-b border-border pb-6">
                 <h3 className="font-medium mb-2">{faq.q}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>

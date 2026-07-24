@@ -32,9 +32,37 @@ const localJsonLd = {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       opens: "11:00",
-      closes: "22:00",
+      closes: "19:00",
     },
   ],
+}
+
+const faqs = [
+  {
+    q: "¿Dónde exactamente se ubica ElementSpa Coyoacán?",
+    a: "Nuestra sucursal está en la colonia Coyoacán, una zona tranquila y de fácil acceso en el sur de la Ciudad de México. Puedes llegar en Metro (estación Viveros o Coyoacán, Línea 3) o en auto con opciones de estacionamiento público cercano.",
+  },
+  {
+    q: "¿Los servicios son los mismos que en Roma Norte?",
+    a: "Sí, en ambas sucursales ofrecemos exactamente las mismas 6 experiencias de masaje con el mismo nivel de calidad, privacidad y profesionalismo. La única diferencia es la ubicación.",
+  },
+  {
+    q: "¿Atienden sin cita en Coyoacán?",
+    a: "Recomendamos siempre reservar por WhatsApp para garantizar disponibilidad. Sin embargo, si hay espacio disponible, podemos atenderte sin cita previa. Lo mejor es escribirnos antes de llegar.",
+  },
+]
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.a,
+    },
+  })),
 }
 
 export default function SpaCoyoacanPage() {
@@ -55,6 +83,10 @@ export default function SpaCoyoacanPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       {/* Hero */}
@@ -126,7 +158,7 @@ export default function SpaCoyoacanPage() {
                 </span>
                 <span className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-primary" />
-                  Lunes a Domingo: 11:00 — 22:00
+                  Lunes a Domingo: 11:00 — 19:00
                 </span>
               </div>
             </div>
@@ -212,20 +244,7 @@ export default function SpaCoyoacanPage() {
             Preguntas sobre ElementSpa Coyoacán
           </h2>
           <div className="space-y-6">
-            {[
-              {
-                q: "¿Dónde exactamente se ubica ElementSpa Coyoacán?",
-                a: "Nuestra sucursal está en la colonia Coyoacán, una zona tranquila y de fácil acceso en el sur de la Ciudad de México. Puedes llegar en Metro (estación Viveros o Coyoacán, Línea 3) o en auto con opciones de estacionamiento público cercano.",
-              },
-              {
-                q: "¿Los servicios son los mismos que en Roma Norte?",
-                a: "Sí, en ambas sucursales ofrecemos exactamente las mismas 6 experiencias de masaje con el mismo nivel de calidad, privacidad y profesionalismo. La única diferencia es la ubicación.",
-              },
-              {
-                q: "¿Atienden sin cita en Coyoacán?",
-                a: "Recomendamos siempre reservar por WhatsApp para garantizar disponibilidad. Sin embargo, si hay espacio disponible, podemos atenderte sin cita previa. Lo mejor es escribirnos antes de llegar.",
-              },
-            ].map((faq) => (
+            {faqs.map((faq) => (
               <div key={faq.q} className="border-b border-border pb-6">
                 <h3 className="font-medium mb-2">{faq.q}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>

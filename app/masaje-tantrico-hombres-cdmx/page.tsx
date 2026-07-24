@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Masaje Tántrico para Hombres en CDMX — Experiencia Premium | ElementSpa",
+  title: "Masaje Tántrico para Hombres en CDMX — Experiencia Premium",
   description:
     "Descubre el masaje tántrico para hombres en CDMX. Técnicas de contacto corporal completo, estimulación sensorial y conexión profunda. Terapeutas profesionales en Roma Norte y Coyoacán.",
   alternates: {

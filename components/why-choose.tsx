@@ -3,7 +3,7 @@ import { CheckCircle } from "lucide-react"
 const reasons = [
   "Ambiente 100% privado y discreto en cada sucursal",
   "Terapeutas capacitadas en técnicas sensoriales y relajantes",
-  "Horario extendido: abierto los 7 días de 11:00 a 22:00",
+  "Horario extendido: abierto los 7 días de 11:00 a 19:00",
   "Reserva fácil y rápida por WhatsApp, sin intermediarios",
   "Dos sucursales bien ubicadas en CDMX: Roma Norte y Coyoacán",
   "Más de 6 experiencias de masaje para elegir según tu estado de ánimo",

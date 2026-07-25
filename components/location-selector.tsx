@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { X, MapPin, MessageCircle, Clock, Check } from "lucide-react"
 import { locations, services, getWhatsAppLink, trackWhatsAppClick, getSuggestedTimeSlots, getServiceDetail } from "@/lib/data"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 interface LocationSelectorProps {
   isOpen: boolean
@@ -33,19 +34,6 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     mql.addEventListener("change", update)
     return () => mql.removeEventListener("change", update)
   }, [])
-
-  // vaul ya bloquea el scroll del body por su cuenta en el bottom sheet
-  // mobile. La tarjeta centrada de desktop es un div normal — sin esto, con
-  // el mouse fuera de la tarjeta se scrollea la página de atrás en vez del
-  // modal ("doble scroll").
-  useEffect(() => {
-    if (isMobile || !isOpen) return
-    const original = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => {
-      document.body.style.overflow = original
-    }
-  }, [isOpen, isMobile])
 
   // Si quien abrió el modal ya sabe el servicio (ej. desde el acordeón de
   // servicios), no lo volvemos a preguntar.
@@ -202,32 +190,23 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     )
   }
 
-  // Desktop: tarjeta centrada, como antes.
-  if (!isOpen) return null
-
+  // Desktop: Dialog de Radix (ya usado en el resto del proyecto). Bloqueo de
+  // scroll del body, trampa de foco, cierre con Escape y aria-* vienen
+  // resueltos por la librería en vez de reinventados a mano.
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative bg-card border border-border rounded-lg shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-serif mb-2">Vive tu Experiencia ElementSpa</h3>
-          <p className="text-sm text-muted-foreground">Elige la sucursal donde quieres reservar</p>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="text-center sm:text-center">
+          <DialogTitle className="font-serif text-xl font-normal">Vive tu Experiencia ElementSpa</DialogTitle>
+          <DialogDescription>Elige la sucursal donde quieres reservar</DialogDescription>
+        </DialogHeader>
 
         {servicioPickerDesktop}
         {horarioPicker}
         {locationButtons}
 
-        <p className="text-xs text-center text-muted-foreground mt-6">Te responderemos al instante por WhatsApp</p>
-      </div>
-    </div>
+        <p className="text-xs text-center text-muted-foreground">Te responderemos al instante por WhatsApp</p>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -153,7 +153,7 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
               <p className="text-xs text-muted-foreground">{location.area}</p>
             </div>
           </div>
-          <MessageCircle className="h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+          <MessageCircle className="h-5 w-5 text-primary shrink-0" />
         </button>
       ))}
     </div>

@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { X, MapPin, MessageCircle, Clock } from "lucide-react"
-import { locations, services, getWhatsAppLink, trackWhatsAppClick, getSuggestedTimeSlots } from "@/lib/data"
+import { X, MapPin, MessageCircle, Clock, Check } from "lucide-react"
+import { locations, services, getWhatsAppLink, trackWhatsAppClick, getSuggestedTimeSlots, getServiceDetail } from "@/lib/data"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 
 interface LocationSelectorProps {
@@ -57,9 +57,12 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     onClose()
   }
 
-  const servicioPicker = askServicio && (
+  // Mobile: chips compactos (poco espacio vertical). Desktop: tarjetas
+  // completas con duración y precio — hay espacio de sobra y el precio
+  // ayuda a decidir, no solo a filtrar.
+  const servicioPickerMobile = askServicio && (
     <div className="mb-6">
-      <p className="text-xs text-muted-foreground mb-2">¿Qué servicio te interesa? (opcional)</p>
+      <p className="text-xs text-muted-foreground mb-2">Elige tu experiencia ideal (opcional)</p>
       <div className="flex flex-wrap gap-2">
         {services.map((s) => (
           <button
@@ -79,13 +82,39 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     </div>
   )
 
+  const servicioPickerDesktop = askServicio && (
+    <div className="mb-6">
+      <p className="text-xs text-muted-foreground mb-3">Elige tu experiencia ideal (opcional)</p>
+      <div className="space-y-2">
+        {services.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setSelectedServicio((prev) => (prev === s.title ? null : s.title))}
+            className={`w-full p-3 rounded-lg border text-left transition-all flex items-center justify-between gap-3 ${
+              selectedServicio === s.title
+                ? "bg-primary/10 border-primary"
+                : "bg-secondary/50 border-border hover:border-primary/50"
+            }`}
+          >
+            <div>
+              <p className="text-sm font-medium">{s.title}</p>
+              <p className="text-xs text-muted-foreground">{getServiceDetail(s)}</p>
+            </div>
+            {selectedServicio === s.title && <Check className="h-4 w-4 text-primary shrink-0" />}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
   const horarioPicker = schedule.slots.length > 0 && (
     <div className="mb-6">
       <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
         <Clock className="h-3.5 w-3.5" />
         {schedule.day === "mañana"
-          ? "Ya cerramos por hoy — horario sugerido para mañana (opcional)"
-          : "Horario sugerido para hoy (opcional)"}
+          ? "Hoy ya cerramos, pero mañana con gusto te esperamos — elige tu horario (opcional)"
+          : "Elige el horario que más te acomode (opcional)"}
       </p>
       <div className="flex flex-wrap gap-2">
         {schedule.slots.map((slot) => (
@@ -120,7 +149,7 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
             </div>
             <div className="text-left">
               <p className="font-medium group-hover:text-primary transition-colors">{location.name}</p>
-              <p className="text-xs text-muted-foreground">CDMX</p>
+              <p className="text-xs text-muted-foreground">{location.area}</p>
             </div>
           </div>
           <MessageCircle className="h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -139,8 +168,8 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
           <DrawerHeader className="pb-2">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <DrawerTitle className="font-serif text-xl font-normal">Selecciona tu Sucursal</DrawerTitle>
-                <DrawerDescription>Elige la ubicación más conveniente para ti</DrawerDescription>
+                <DrawerTitle className="font-serif text-xl font-normal">Vive tu Experiencia ElementSpa</DrawerTitle>
+                <DrawerDescription>Elige la sucursal donde quieres reservar</DrawerDescription>
               </div>
               <DrawerClose className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-1">
                 <X className="h-5 w-5" />
@@ -148,12 +177,12 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
             </div>
           </DrawerHeader>
           <div className="flex-1 min-h-0 overflow-y-auto px-4">
-            {servicioPicker}
+            {servicioPickerMobile}
             {horarioPicker}
           </div>
           <DrawerFooter className="border-t border-border pt-4">
             {locationButtons}
-            <p className="text-xs text-center text-muted-foreground pt-2">Serás redirigido a WhatsApp para continuar</p>
+            <p className="text-xs text-center text-muted-foreground pt-2">Te responderemos al instante por WhatsApp</p>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -176,15 +205,15 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
         </button>
 
         <div className="text-center mb-6">
-          <h3 className="text-xl font-serif mb-2">Selecciona tu Sucursal</h3>
-          <p className="text-sm text-muted-foreground">Elige la ubicación más conveniente para ti</p>
+          <h3 className="text-xl font-serif mb-2">Vive tu Experiencia ElementSpa</h3>
+          <p className="text-sm text-muted-foreground">Elige la sucursal donde quieres reservar</p>
         </div>
 
-        {servicioPicker}
+        {servicioPickerDesktop}
         {horarioPicker}
         {locationButtons}
 
-        <p className="text-xs text-center text-muted-foreground mt-6">Serás redirigido a WhatsApp para continuar</p>
+        <p className="text-xs text-center text-muted-foreground mt-6">Te responderemos al instante por WhatsApp</p>
       </div>
     </div>
   )

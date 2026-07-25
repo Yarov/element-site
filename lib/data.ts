@@ -3,10 +3,12 @@ import { trackLead } from "@/lib/meta-tracking"
 export const locations = {
   condesa: {
     name: "Roma Norte",
+    area: "Zona Roma Norte, CDMX",
     whatsapp: "+525647114561",
   },
   coyoacan: {
     name: "Coyoacán",
+    area: "Zona Coyoacán, CDMX",
     whatsapp: "+525647114561",
   },
 }

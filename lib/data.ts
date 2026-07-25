@@ -11,6 +11,17 @@ export const locations = {
   },
 }
 
+// Páginas de sucursal — permite preseleccionar la ubicación en el modal de
+// reserva cuando el CTA (header, float) vive en una página de sucursal.
+const locationByPath: Record<string, keyof typeof locations> = {
+  "/spa-para-hombres-roma-norte": "condesa",
+  "/spa-para-hombres-coyoacan": "coyoacan",
+}
+
+export function getLocationKeyFromPath(pathname: string): keyof typeof locations | undefined {
+  return locationByPath[pathname.replace(/\/+$/, "") || "/"]
+}
+
 export const extraServices = {
   extra_10_min: {
     name: "10 min. extra",
@@ -182,20 +193,20 @@ export function getServiceDetail(service: Service): string {
     : `Desde ${service.options?.[0].price}`
 }
 
-export function buildWhatsAppMessage({ page, servicio, detalle }: {
-  page: string
+export function buildWhatsAppMessage({ servicio, detalle }: {
   servicio?: string
   detalle?: string
-}): string {
-  const lines = [`Hola, vi la página de ${page} de ElementSpa.`]
-  lines.push("Quiero agendar en la sucursal {sucursal}.")
+} = {}): string {
+  // El mensaje llega al WhatsApp del spa — no hace falta presentarse ni citar
+  // la página; el staff solo necesita sucursal, servicio y horario.
+  const lines = ["Hola, quiero agendar una cita en la sucursal {sucursal}."]
   if (servicio) {
     const info = detalle ? ` (${detalle})` : ""
-    lines.push(`Me interesa: ${servicio}${info}.`)
+    lines.push(`Servicio: ${servicio}${info}`)
   }
-  // La línea de cierre (¿hoy o mañana?) se agrega en LocationSelector, que sí
-  // conoce la hora real y el horario sugerido — así el mensaje nunca pregunta
-  // "hoy" cuando ya sabemos que el spa está cerrado por hoy.
+  // La línea de horario se agrega en LocationSelector, que sí conoce la hora
+  // real y el horario sugerido — así el mensaje nunca pregunta "hoy" cuando
+  // ya sabemos que el spa está cerrado por hoy.
   return lines.join("\n")
 }
 

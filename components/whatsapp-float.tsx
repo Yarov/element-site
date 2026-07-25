@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { MessageCircle } from "lucide-react"
 import { LocationSelector } from "@/components/location-selector"
-import { buildWhatsAppMessage } from "@/lib/data"
+import { buildWhatsAppMessage, getLocationKeyFromPath } from "@/lib/data"
 
 export function WhatsAppFloat() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
+  const pathname = usePathname()
 
   return (
     <>
@@ -21,7 +23,8 @@ export function WhatsAppFloat() {
       <LocationSelector
         isOpen={showLocationSelector}
         onClose={() => setShowLocationSelector(false)}
-        message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
+        message={buildWhatsAppMessage()}
+        defaultLocation={getLocationKeyFromPath(pathname)}
       />
     </>
   )

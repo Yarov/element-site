@@ -64,10 +64,12 @@ export default function MasajeSensorialPage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
   const [selectedServicio, setSelectedServicio] = useState("")
+  const [selectedDetalle, setSelectedDetalle] = useState("")
 
   const handleReservar = (servicio?: string, detalle?: string) => {
-    setWhatsappMessage(buildWhatsAppMessage({ page: "masaje sensorial", servicio, detalle }))
+    setWhatsappMessage(buildWhatsAppMessage({ servicio, detalle }))
     setSelectedServicio(servicio || "")
+    setSelectedDetalle(detalle || "")
     setShowLocationSelector(true)
   }
 
@@ -341,6 +343,7 @@ export default function MasajeSensorialPage() {
         onClose={() => setShowLocationSelector(false)}
         message={whatsappMessage}
         servicio={selectedServicio}
+        servicioDetalle={selectedDetalle}
       />
     </main>
   )

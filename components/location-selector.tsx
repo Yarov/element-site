@@ -34,6 +34,19 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     return () => mql.removeEventListener("change", update)
   }, [])
 
+  // vaul ya bloquea el scroll del body por su cuenta en el bottom sheet
+  // mobile. La tarjeta centrada de desktop es un div normal — sin esto, con
+  // el mouse fuera de la tarjeta se scrollea la página de atrás en vez del
+  // modal ("doble scroll").
+  useEffect(() => {
+    if (isMobile || !isOpen) return
+    const original = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = original
+    }
+  }, [isOpen, isMobile])
+
   // Si quien abrió el modal ya sabe el servicio (ej. desde el acordeón de
   // servicios), no lo volvemos a preguntar.
   const askServicio = !servicio
@@ -85,23 +98,23 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
   const servicioPickerDesktop = askServicio && (
     <div className="mb-6">
       <p className="text-xs text-muted-foreground mb-3">Elige tu experiencia ideal (opcional)</p>
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2">
         {services.map((s) => (
           <button
             key={s.id}
             type="button"
             onClick={() => setSelectedServicio((prev) => (prev === s.title ? null : s.title))}
-            className={`w-full p-3 rounded-lg border text-left transition-all flex items-center justify-between gap-3 ${
+            className={`p-3 rounded-lg border text-left transition-all flex items-start justify-between gap-2 ${
               selectedServicio === s.title
                 ? "bg-primary/10 border-primary"
                 : "bg-secondary/50 border-border hover:border-primary/50"
             }`}
           >
             <div>
-              <p className="text-sm font-medium">{s.title}</p>
-              <p className="text-xs text-muted-foreground">{getServiceDetail(s)}</p>
+              <p className="text-sm font-medium leading-tight">{s.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{getServiceDetail(s)}</p>
             </div>
-            {selectedServicio === s.title && <Check className="h-4 w-4 text-primary shrink-0" />}
+            {selectedServicio === s.title && <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
           </button>
         ))}
       </div>
@@ -196,7 +209,7 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative bg-card border border-border rounded-lg shadow-2xl w-full max-w-md mx-4 p-6 max-h-[85vh] overflow-y-auto">
+      <div className="relative bg-card border border-border rounded-lg shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"

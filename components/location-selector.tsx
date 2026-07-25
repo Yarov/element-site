@@ -159,9 +159,16 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     </div>
   )
 
-  // Mobile: bottom sheet nativo (vaul) — el picker de servicio/horario
-  // vive en una zona con scroll propio; los botones de sucursal (la acción
-  // real) quedan fijos en un footer que nunca se va con el scroll.
+  // Sucursal va primero y siempre visible sin scroll — es la única acción
+  // que de verdad completa el flujo. Servicio y horario son refinamiento
+  // opcional debajo; validado con 3 revisiones de UX independientes.
+  const reassurance = (
+    <p className="text-xs text-center text-muted-foreground">Te responderemos al instante por WhatsApp</p>
+  )
+
+  // Mobile: bottom sheet nativo (vaul). Sucursal queda fuera de la zona con
+  // scroll, así que siempre está a la vista sin depender de cuánto crezca
+  // el contenido opcional de abajo.
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -177,14 +184,14 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
               </DrawerClose>
             </div>
           </DrawerHeader>
-          <div className="flex-1 min-h-0 overflow-y-auto px-4">
+          <div className="px-4 space-y-3">
+            {locationButtons}
+            {reassurance}
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 mt-4 border-t border-border pt-4">
             {servicioPickerMobile}
             {horarioPicker}
           </div>
-          <DrawerFooter className="border-t border-border pt-4">
-            {locationButtons}
-            <p className="text-xs text-center text-muted-foreground pt-2">Te responderemos al instante por WhatsApp</p>
-          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     )
@@ -201,11 +208,13 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
           <DialogDescription>Elige la sucursal donde quieres reservar</DialogDescription>
         </DialogHeader>
 
-        {servicioPickerDesktop}
-        {horarioPicker}
         {locationButtons}
+        {reassurance}
 
-        <p className="text-xs text-center text-muted-foreground">Te responderemos al instante por WhatsApp</p>
+        <div className="border-t border-border pt-4 space-y-4">
+          {servicioPickerDesktop}
+          {horarioPicker}
+        </div>
       </DialogContent>
     </Dialog>
   )

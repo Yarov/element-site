@@ -13,6 +13,7 @@ export function Header() {
 
   const handleReservar = () => {
     setShowLocationSelector(true)
+    setIsOpen(false)
   }
 
   return (

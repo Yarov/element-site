@@ -38,7 +38,7 @@ export function CTAFinal() {
       <LocationSelector
         isOpen={showLocationSelector}
         onClose={() => setShowLocationSelector(false)}
-        message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
+        message={buildWhatsAppMessage()}
       />
     </>
   )

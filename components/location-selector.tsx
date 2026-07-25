@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { X, MapPin, MessageCircle, Clock, Check, ChevronDown } from "lucide-react"
-import { locations, services, getWhatsAppLink, trackWhatsAppClick, getSuggestedTimeSlots, getServiceDetail } from "@/lib/data"
+import { X, MapPin, MessageCircle, Clock } from "lucide-react"
+import { locations, services, getWhatsAppLink, trackWhatsAppClick, getSuggestedTimeSlots } from "@/lib/data"
 
 interface LocationSelectorProps {
   isOpen: boolean
@@ -14,7 +14,6 @@ interface LocationSelectorProps {
 export function LocationSelector({ isOpen, onClose, message, servicio }: LocationSelectorProps) {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [selectedServicio, setSelectedServicio] = useState<string | null>(null)
-  const [showServicios, setShowServicios] = useState(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- recalcular "ahora" cada vez que se abre el modal
   const schedule = useMemo(() => getSuggestedTimeSlots(), [isOpen])
 
@@ -22,7 +21,6 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
     if (isOpen) {
       setSelectedSlot(null)
       setSelectedServicio(null)
-      setShowServicios(false)
     }
   }, [isOpen])
 
@@ -72,52 +70,28 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
           <p className="text-sm text-muted-foreground">Elige la ubicación más conveniente para ti</p>
         </div>
 
-        {/* Servicio de interés — destacado, opcional. Solo si el CTA que abrió
-            el modal no traía ya un servicio elegido. */}
+        {/* Servicio de interés — opcional. Mismo lenguaje visual que el
+            horario de abajo (chips), no un acordeón. Solo si el CTA que
+            abrió el modal no traía ya un servicio elegido. */}
         {askServicio && (
-          <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setShowServicios((v) => !v)}
-              className="w-full flex items-center justify-between gap-3 text-left"
-            >
-              <div>
-                <p className="text-sm font-medium">
-                  {selectedServicio ? `Servicio: ${selectedServicio}` : "¿Qué servicio te interesa?"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Nos ayuda a confirmar tu cita más rápido (opcional)
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${showServicios ? "rotate-180" : ""}`}
-              />
-            </button>
-            {showServicios && (
-              <div className="space-y-2 mt-3">
-                {services.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedServicio((prev) => (prev === s.title ? null : s.title))
-                      setShowServicios(false)
-                    }}
-                    className={`w-full p-3 rounded-lg border text-left transition-all flex items-center justify-between gap-3 ${
-                      selectedServicio === s.title
-                        ? "bg-primary/10 border-primary"
-                        : "bg-secondary/50 border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{s.title}</p>
-                      <p className="text-xs text-muted-foreground">{getServiceDetail(s)}</p>
-                    </div>
-                    {selectedServicio === s.title && <Check className="h-4 w-4 text-primary shrink-0" />}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="mb-6">
+            <p className="text-xs text-muted-foreground mb-2">¿Qué servicio te interesa? (opcional)</p>
+            <div className="flex flex-wrap gap-2">
+              {services.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSelectedServicio((prev) => (prev === s.title ? null : s.title))}
+                  className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                    selectedServicio === s.title
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-secondary/50 border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {s.title}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

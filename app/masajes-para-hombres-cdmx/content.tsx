@@ -75,12 +75,10 @@ export default function MasajesParaHombresPage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
   const [selectedServicio, setSelectedServicio] = useState("")
-  const [selectedDetalle, setSelectedDetalle] = useState("")
 
   const handleReservar = (servicio?: string, detalle?: string) => {
-    setWhatsappMessage(buildWhatsAppMessage({ servicio, detalle }))
+    setWhatsappMessage(buildWhatsAppMessage({ page: "masajes para hombres en CDMX", servicio, detalle }))
     setSelectedServicio(servicio || "")
-    setSelectedDetalle(detalle || "")
     setShowLocationSelector(true)
   }
 
@@ -277,7 +275,6 @@ export default function MasajesParaHombresPage() {
         onClose={() => setShowLocationSelector(false)}
         message={whatsappMessage}
         servicio={selectedServicio}
-        servicioDetalle={selectedDetalle}
       />
     </main>
   )

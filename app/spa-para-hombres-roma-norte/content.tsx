@@ -69,12 +69,10 @@ export default function SpaRomaNortePage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
   const [selectedServicio, setSelectedServicio] = useState("")
-  const [selectedDetalle, setSelectedDetalle] = useState("")
 
   const handleReservar = (servicio?: string, detalle?: string) => {
-    setWhatsappMessage(buildWhatsAppMessage({ servicio, detalle }))
+    setWhatsappMessage(buildWhatsAppMessage({ page: "spa en Roma Norte", servicio, detalle }))
     setSelectedServicio(servicio || "")
-    setSelectedDetalle(detalle || "")
     setShowLocationSelector(true)
   }
 
@@ -284,8 +282,6 @@ export default function SpaRomaNortePage() {
         onClose={() => setShowLocationSelector(false)}
         message={whatsappMessage}
         servicio={selectedServicio}
-        servicioDetalle={selectedDetalle}
-        defaultLocation="condesa"
       />
     </main>
   )

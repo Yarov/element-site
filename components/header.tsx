@@ -2,16 +2,14 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { buildWhatsAppMessage, getLocationKeyFromPath } from "@/lib/data"
+import { buildWhatsAppMessage } from "@/lib/data"
 import { LocationSelector } from "@/components/location-selector"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [showLocationSelector, setShowLocationSelector] = useState(false)
-  const pathname = usePathname()
 
   const handleReservar = () => {
     setShowLocationSelector(true)
@@ -111,8 +109,7 @@ export function Header() {
     <LocationSelector
       isOpen={showLocationSelector}
       onClose={() => setShowLocationSelector(false)}
-      message={buildWhatsAppMessage()}
-      defaultLocation={getLocationKeyFromPath(pathname)}
+      message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
     />
     </>
   )

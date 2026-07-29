@@ -22,13 +22,11 @@ export function Services() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
   const [selectedServicio, setSelectedServicio] = useState("")
-  const [selectedDetalle, setSelectedDetalle] = useState("")
 
   const handleReservar = (service: Service, option?: string) => {
     const detalle = option || getServiceDetail(service)
-    setWhatsappMessage(buildWhatsAppMessage({ servicio: service.title, detalle }))
+    setWhatsappMessage(buildWhatsAppMessage({ page: "servicios", servicio: service.title, detalle }))
     setSelectedServicio(service.title)
-    setSelectedDetalle(detalle)
     setShowLocationSelector(true)
   }
 
@@ -159,7 +157,6 @@ export function Services() {
         onClose={() => setShowLocationSelector(false)}
         message={whatsappMessage}
         servicio={selectedServicio}
-        servicioDetalle={selectedDetalle}
       />
     </>
   )

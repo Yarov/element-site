@@ -69,12 +69,10 @@ export default function SpaCoyoacanPage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
   const [selectedServicio, setSelectedServicio] = useState("")
-  const [selectedDetalle, setSelectedDetalle] = useState("")
 
   const handleReservar = (servicio?: string, detalle?: string) => {
-    setWhatsappMessage(buildWhatsAppMessage({ servicio, detalle }))
+    setWhatsappMessage(buildWhatsAppMessage({ page: "spa en Coyoacán", servicio, detalle }))
     setSelectedServicio(servicio || "")
-    setSelectedDetalle(detalle || "")
     setShowLocationSelector(true)
   }
 
@@ -284,8 +282,6 @@ export default function SpaCoyoacanPage() {
         onClose={() => setShowLocationSelector(false)}
         message={whatsappMessage}
         servicio={selectedServicio}
-        servicioDetalle={selectedDetalle}
-        defaultLocation="coyoacan"
       />
     </main>
   )

@@ -101,7 +101,7 @@ export function Hero() {
       <LocationSelector
         isOpen={showLocationSelector}
         onClose={() => setShowLocationSelector(false)}
-        message={buildWhatsAppMessage()}
+        message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
       />
     </>
   )

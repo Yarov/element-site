@@ -1,21 +1,19 @@
 "use client"
 
-import { useState } from "react"
 import { MapPin, MessageCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { locations, buildWhatsAppMessage } from "@/lib/data"
-import { LocationSelector, type LocationKey } from "@/components/location-selector"
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 const sucursales = [
   {
-    id: "condesa" as LocationKey,
+    id: "condesa",
     name: "Roma Norte",
     address: "Zona Roma Norte, CDMX",
     whatsapp: locations.condesa.whatsapp,
     hours: "Lun - Dom: 11:00 - 19:00",
   },
   {
-    id: "coyoacan" as LocationKey,
+    id: "coyoacan",
     name: "Coyoacán",
     address: "Zona Coyoacán, CDMX",
     whatsapp: locations.coyoacan.whatsapp,
@@ -24,7 +22,10 @@ const sucursales = [
 ]
 
 export function Locations() {
-  const [selectedSucursal, setSelectedSucursal] = useState<LocationKey | null>(null)
+  const handleContactar = (whatsapp: string, sucursal: string) => {
+    const waUrl = getWhatsAppLink(whatsapp, `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`)
+    trackWhatsAppClick(sucursal, waUrl)
+  }
 
   return (
     <section id="sucursales" className="py-24">
@@ -59,23 +60,16 @@ export function Locations() {
               </div>
 
               <Button
-                onClick={() => setSelectedSucursal(sucursal.id)}
+                onClick={() => handleContactar(sucursal.whatsapp, sucursal.name)}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-6 gap-2"
               >
                 <MessageCircle className="h-5 w-5" />
-                Reservar en {sucursal.name}
+                Contactar por WhatsApp
               </Button>
             </div>
           ))}
         </div>
       </div>
-
-      <LocationSelector
-        isOpen={selectedSucursal !== null}
-        onClose={() => setSelectedSucursal(null)}
-        message={buildWhatsAppMessage()}
-        defaultLocation={selectedSucursal ?? undefined}
-      />
     </section>
   )
 }

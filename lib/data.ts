@@ -193,72 +193,11 @@ export function buildWhatsAppMessage({ page, servicio, detalle }: {
     const info = detalle ? ` (${detalle})` : ""
     lines.push(`Me interesa: ${servicio}${info}.`)
   }
-  // La línea de cierre (¿hoy o mañana?) se agrega en LocationSelector, que sí
-  // conoce la hora real y el horario sugerido — así el mensaje nunca pregunta
-  // "hoy" cuando ya sabemos que el spa está cerrado por hoy.
+  lines.push("¿Tienen disponibilidad para hoy o mañana?")
   return lines.join("\n")
 }
 
 export function getWhatsAppLink(phone: string, message: string) {
   const encodedMessage = encodeURIComponent(message)
   return `https://wa.me/${phone.replace(/\+/g, "")}?text=${encodedMessage}`
-}
-
-// Horario de atención para sugerencias de horario (no es disponibilidad real).
-const OPENING_HOUR = 11
-const CLOSING_HOUR = 19
-const SLOT_MINUTES = 30
-const MAX_SUGGESTED_SLOTS = 8
-
-function getMexicoCityParts(date: Date): { hour: number; minute: number } {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Mexico_City",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: false,
-  }).formatToParts(date)
-  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0) % 24
-  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0)
-  return { hour, minute }
-}
-
-function formatSlot(hour: number, minute: number): string {
-  const period = hour >= 12 ? "pm" : "am"
-  const displayHour = hour % 12 === 0 ? 12 : hour % 12
-  const displayMinute = minute === 0 ? "00" : String(minute).padStart(2, "0")
-  return `${displayHour}:${displayMinute} ${period}`
-}
-
-export interface SuggestedSchedule {
-  day: "hoy" | "mañana"
-  slots: string[]
-}
-
-/**
- * Sugerencias de horario (no validación real de disponibilidad).
- * Primer horario = hora actual (CDMX) + 30 min, redondeado a la siguiente
- * media hora, dentro del horario de atención (11am-7pm). Si ya no queda
- * horario hoy, sugiere desde la apertura de mañana.
- */
-export function getSuggestedTimeSlots(now: Date = new Date()): SuggestedSchedule {
-  const { hour, minute } = getMexicoCityParts(now)
-  const openMinutes = OPENING_HOUR * 60
-  const closeMinutes = CLOSING_HOUR * 60
-
-  let startMinutes = Math.ceil((hour * 60 + minute + SLOT_MINUTES) / SLOT_MINUTES) * SLOT_MINUTES
-  let day: "hoy" | "mañana" = "hoy"
-
-  if (startMinutes > closeMinutes) {
-    day = "mañana"
-    startMinutes = openMinutes
-  } else if (startMinutes < openMinutes) {
-    startMinutes = openMinutes
-  }
-
-  const slots: string[] = []
-  for (let m = startMinutes; m <= closeMinutes && slots.length < MAX_SUGGESTED_SLOTS; m += SLOT_MINUTES) {
-    slots.push(formatSlot(Math.floor(m / 60), m % 60))
-  }
-
-  return { day, slots }
 }

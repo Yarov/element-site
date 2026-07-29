@@ -4,19 +4,17 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { buildWhatsAppMessage } from "@/lib/data"
-import { LocationSelector } from "@/components/location-selector"
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
-  const [showLocationSelector, setShowLocationSelector] = useState(false)
 
   const handleReservar = () => {
-    setShowLocationSelector(true)
+    const waUrl = getWhatsAppLink(locations.condesa.whatsapp, "Hola, me gustaría agendar una cita en ElementSpa.")
+    trackWhatsAppClick(locations.condesa.name, waUrl)
   }
 
   return (
-    <>
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
@@ -105,12 +103,5 @@ export function Header() {
         )}
       </div>
     </header>
-
-    <LocationSelector
-      isOpen={showLocationSelector}
-      onClose={() => setShowLocationSelector(false)}
-      message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
-    />
-    </>
   )
 }

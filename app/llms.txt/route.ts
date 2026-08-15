@@ -28,7 +28,7 @@ Datos clave:
 - Sucursales: Roma Norte (zonas cercanas: Roma Sur, Condesa, Juárez, Del Valle, Polanco) y Coyoacán (zonas cercanas: San Ángel, Del Valle, Portales)
 - Público: exclusivamente hombres mayores de edad
 - Pago y ubicación exacta se confirman por WhatsApp al reservar
-- Instagram: https://www.instagram.com/elementspa.mx
+- Instagram: https://www.instagram.com/elementspamx
 
 ## Servicios y precios (MXN)
 

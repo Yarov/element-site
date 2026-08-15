@@ -152,6 +152,33 @@ declare global {
   }
 }
 
+/** Convierte "$1,350" -> 1350. Devuelve undefined si no hay precio parseable. */
+function parsePrice(price?: string): number | undefined {
+  if (!price) return undefined
+  const n = Number(price.replace(/[^0-9.]/g, ""))
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+/**
+ * Valor POTENCIAL del lead (no ingreso confirmado): el precio del servicio
+ * solicitado. Para servicios con varias duraciones usa la opción más barata,
+ * para no inflar el valor. Sin servicio identificado devuelve undefined —
+ * preferimos no enviar valor a enviar uno inventado.
+ *
+ * Sirve para que Meta y GA4 optimicen por valor y no solo por volumen:
+ * un lead de MASAJE 4 MANOS ($4,000) no vale lo mismo que uno de $1,100.
+ */
+export function getLeadValue(servicio?: string): number | undefined {
+  if (!servicio) return undefined
+  const service = services.find((s) => s.title === servicio)
+  if (!service) return undefined
+  if (service.price) return parsePrice(service.price)
+  const optionPrices = (service.options ?? [])
+    .map((o) => parsePrice(o.price))
+    .filter((p): p is number => p !== undefined)
+  return optionPrices.length ? Math.min(...optionPrices) : undefined
+}
+
 export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: string) {
   if (typeof window === 'undefined') return
 
@@ -163,7 +190,7 @@ export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: s
   //    Si se invoca window.open ANTES, en iOS Safari el cambio de contexto
   //    aborta el fetch aunque tenga keepalive y se pierde el evento CAPI
   //    server-side (~50% de los Lead events en mobile).
-  trackLead(sucursal, servicio)
+  trackLead(sucursal, servicio, getLeadValue(servicio))
 
   // 2) Abrir WhatsApp INMEDIATAMENTE en el siguiente statement síncrono del
   //    mismo handler de click, para preservar el "user gesture" y evitar

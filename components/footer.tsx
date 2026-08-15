@@ -79,9 +79,6 @@ export function Footer() {
             <Link href="/aviso-de-privacidad" className="text-muted-foreground hover:text-foreground transition-colors">
               Aviso de Privacidad
             </Link>
-            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-              Términos y Condiciones
-            </Link>
           </div>
         </div>
 

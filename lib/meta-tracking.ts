@@ -65,18 +65,28 @@ async function sendServerEvent(payload: {
   }
 }
 
-/** Track Lead event (WhatsApp click) — browser + server */
-export function trackLead(sucursal: string, servicio?: string) {
+/**
+ * Track Lead event (WhatsApp click) — browser + server.
+ *
+ * `value` es el valor POTENCIAL del lead (precio del servicio solicitado), no
+ * un ingreso confirmado: la reserva se cierra por WhatsApp, fuera del sitio.
+ * Se envía para que Meta y GA4 puedan optimizar por valor en vez de por
+ * volumen. Se omite cuando no se identifica el servicio.
+ */
+export function trackLead(sucursal: string, servicio?: string, value?: number) {
   if (typeof window === "undefined") return
 
   const eventId = generateEventId()
   const { fbp, fbc } = getFbCookies()
 
-  // Browser: fbq() direct call with eventID for deduplication
-  fbqTrack("Lead", {
+  const customData = {
     content_name: servicio || "general",
     content_category: sucursal,
-  }, eventId)
+    ...(value ? { value, currency: "MXN" } : {}),
+  }
+
+  // Browser: fbq() direct call with eventID for deduplication
+  fbqTrack("Lead", customData, eventId)
 
   // Browser: push to dataLayer for GA4/GTM
   window.dataLayer = window.dataLayer || []
@@ -85,6 +95,7 @@ export function trackLead(sucursal: string, servicio?: string) {
     event_id: eventId,
     sucursal: sucursal.replace(/\s+/g, "_"),
     ...(servicio && { servicio: servicio.replace(/\s+/g, "_") }),
+    ...(value ? { lead_value: value, currency: "MXN" } : {}),
   })
 
   // Server: CAPI
@@ -92,10 +103,7 @@ export function trackLead(sucursal: string, servicio?: string) {
     event_name: "Lead",
     event_id: eventId,
     event_source_url: window.location.href,
-    custom_data: {
-      content_name: servicio || "general",
-      content_category: sucursal,
-    },
+    custom_data: customData,
     fbp,
     fbc,
   })

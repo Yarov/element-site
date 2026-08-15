@@ -57,7 +57,7 @@ const jsonLd = {
   description:
     "Spa exclusivo para hombres en CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos en Roma Norte y Coyoacán. Atención discreta y profesional para caballeros.",
   sameAs: [
-    "https://www.instagram.com/elementspa.mx",
+    "https://www.instagram.com/elementspamx",
   ],
   department: [
     {

@@ -53,7 +53,7 @@ const jsonLd = {
   "@type": "Organization",
   name: "ElementSpa",
   url: "https://elementspa.mx",
-  logo: "https://elementspa.mx/placeholder-logo.png",
+  logo: "https://elementspa.mx/apple-icon.png",
   description:
     "Spa exclusivo para hombres en CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos en Roma Norte y Coyoacán. Atención discreta y profesional para caballeros.",
   sameAs: [

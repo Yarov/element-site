@@ -4,6 +4,7 @@ import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { getAllPosts, getPostBySlug } from "@/lib/blog"
+import { buildBreadcrumb, SITE_URL } from "@/lib/schema"
 
 export function generateStaticParams() {
   return getAllPosts().map((post) => ({ slug: post.slug }))
@@ -40,8 +41,45 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params
   const { meta, content } = getPostBySlug(slug)
 
+  const blogPostingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: meta.title,
+    description: meta.description,
+    image: `${SITE_URL}${meta.image}`,
+    datePublished: meta.date,
+    url: `${SITE_URL}/blog/${slug}`,
+    inLanguage: "es-MX",
+    author: {
+      "@type": "Organization",
+      name: "ElementSpa",
+      url: SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "ElementSpa",
+      url: SITE_URL,
+    },
+    mainEntityOfPage: `${SITE_URL}/blog/${slug}`,
+    ...(meta.tags?.length ? { keywords: meta.tags.join(", ") } : {}),
+  }
+
+  const breadcrumbJsonLd = buildBreadcrumb([
+    { name: "Inicio", path: "/" },
+    { name: "Blog", path: "/blog" },
+    { name: meta.title, path: `/blog/${slug}` },
+  ])
+
   return (
     <main className="min-h-screen bg-background py-24 px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <article className="max-w-3xl mx-auto">
         <Link
           href="/blog"

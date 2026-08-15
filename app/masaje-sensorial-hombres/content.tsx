@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { LocationSelector } from "@/components/location-selector"
 import { buildWhatsAppMessage } from "@/lib/data"
+import { buildOffersForServices, buildBreadcrumb } from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
 
 const localJsonLd = {
@@ -27,7 +28,14 @@ const localJsonLd = {
     "@type": "City",
     name: "Ciudad de México",
   },
+  // Caricias del Alma y Conexión Esencial
+  offers: buildOffersForServices([1, 2]),
 }
+
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Inicio", path: "/" },
+  { name: "Masaje Sensorial para Hombres", path: "/masaje-sensorial-hombres" },
+])
 
 const faqJsonLd = {
   "@context": "https://schema.org",
@@ -82,6 +90,10 @@ export default function MasajeSensorialPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* Hero */}

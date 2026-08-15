@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { LocationSelector } from "@/components/location-selector"
 import { services, buildWhatsAppMessage, getServiceDetail } from "@/lib/data"
+import { buildOffersForServices, buildBreadcrumb } from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
 import type React from "react"
 
@@ -37,7 +38,14 @@ const localJsonLd = {
     "@type": "City",
     name: "Ciudad de México",
   },
+  // Catálogo completo de servicios con precios
+  offers: buildOffersForServices(),
 }
+
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Inicio", path: "/" },
+  { name: "Masajes para Hombres en CDMX", path: "/masajes-para-hombres-cdmx" },
+])
 
 const faqs = [
   {
@@ -93,6 +101,10 @@ export default function MasajesParaHombresPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* Hero */}

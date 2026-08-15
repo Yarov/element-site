@@ -157,9 +157,16 @@ export default function MasajesParaHombresPage() {
           <h2 className="text-3xl md:text-4xl font-serif mb-4">
             Todos nuestros servicios de masaje
           </h2>
-          <p className="text-muted-foreground mb-10 max-w-2xl">
+          <p className="text-muted-foreground mb-4 max-w-2xl">
             Cada experiencia combina técnica profesional, estimulación sensorial y un ambiente
             completamente privado. Elige la tuya y reserva en menos de un minuto.
+          </p>
+          <p className="text-sm text-muted-foreground mb-10 max-w-2xl">
+            ¿Poco tiempo entre semana? Revisa las opciones de{" "}
+            <Link href="/masaje-ejecutivo-hombres-cdmx" className="text-primary hover:underline">
+              masaje ejecutivo de 30 a 50 minutos
+            </Link>
+            .
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

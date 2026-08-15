@@ -1,11 +1,15 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Masajes para Hombres en CDMX — Sensoriales, Relajantes y Tántricos",
+  title: "Masajes para Hombres en CDMX — Precios y Servicios desde $1,100",
   description:
-    "Catálogo completo de masajes para hombres en CDMX. Sensoriales, relajantes, descontracturantes y tántricos. Terapeutas profesionales en Roma Norte y Coyoacán. Reserva por WhatsApp.",
+    "6 masajes para hombres en CDMX desde $1,100: sensorial, relajante, descontracturante y tántrico. Precios claros, cabinas privadas en Roma Norte y Coyoacán. Reserva por WhatsApp.",
   alternates: {
     canonical: "/masajes-para-hombres-cdmx",
+    languages: {
+      "es-MX": "/masajes-para-hombres-cdmx",
+      en: "/en/massage-for-men-mexico-city",
+    },
   },
   openGraph: {
     title: "Masajes para Hombres en CDMX — ElementSpa",

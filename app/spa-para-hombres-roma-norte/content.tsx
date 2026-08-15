@@ -117,12 +117,12 @@ export default function SpaRomaNortePage() {
           <div className="max-w-3xl">
             <p className="text-sm tracking-[0.3em] text-primary uppercase mb-4">Roma Norte, CDMX</p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight mb-6">
-              Spa para Hombres en Roma Norte — ElementSpa
+              Masajes para Hombres en Roma Norte — ElementSpa
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              En el corazón de la colonia Roma Norte, ElementSpa ofrece un refugio exclusivo para caballeros
-              que buscan relajación profunda, estimulación sensorial y un trato completamente personalizado.
-              Nuestro espacio combina privacidad, elegancia y profesionalismo en cada visita.
+              En el corazón de la colonia Roma, ElementSpa ofrece masajes exclusivos para caballeros:
+              sensoriales, relajantes, descontracturantes y tántricos, desde $1,100. Un refugio de
+              privacidad y profesionalismo a minutos del Metrobús, en plena Roma Norte.
             </p>
             <Button
               size="lg"
@@ -142,12 +142,13 @@ export default function SpaRomaNortePage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-serif mb-6">
-                Tu espacio de bienestar en la Roma Norte
+                Masajes en la colonia Roma, a minutos de donde estés
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Nuestra sucursal de Roma Norte está ubicada en una de las colonias más vibrantes y accesibles
-                de la Ciudad de México. A minutos del Metrobús, rodeado de restaurantes y cafés, nuestro
-                espacio ofrece un contraste perfecto: un oasis de calma y sensualidad en medio de la ciudad.
+                Nuestra sucursal está en la colonia Roma Norte, una de las zonas más vibrantes y accesibles
+                de la Ciudad de México. A minutos del Metrobús sobre Insurgentes, rodeada de restaurantes y
+                cafés, y a poca distancia de la Roma Sur, la Condesa y la Juárez. Si buscas masajes en la
+                Roma, este es tu punto más cercano.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-6">
                 Las cabinas están diseñadas con iluminación ambiental, aromaterapia sutil y aislamiento

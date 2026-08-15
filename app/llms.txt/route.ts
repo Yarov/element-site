@@ -28,7 +28,7 @@ Datos clave:
 - Sucursales: Roma Norte (zonas cercanas: Roma Sur, Condesa, Juárez, Del Valle, Polanco) y Coyoacán (zonas cercanas: San Ángel, Del Valle, Portales)
 - Público: exclusivamente hombres mayores de edad
 - Pago y ubicación exacta se confirman por WhatsApp al reservar
-- Instagram: https://www.instagram.com/elementspa.mx
+- Instagram: https://www.instagram.com/elementspamx
 
 ## Servicios y precios (MXN)
 
@@ -51,6 +51,11 @@ ${Object.values(extraServices)
 - [Masajes para hombres en CDMX](${SITE_URL}/masajes-para-hombres-cdmx): catálogo completo de servicios
 - [Masaje tántrico para hombres en CDMX](${SITE_URL}/masaje-tantrico-hombres-cdmx): experiencias tántricas (Piel a Piel, Fantasía Compartida, Masaje 4 Manos)
 - [Masaje sensorial para hombres](${SITE_URL}/masaje-sensorial-hombres): masaje sensorial (Caricias del Alma, Conexión Esencial)
+- [Masaje ejecutivo para hombres en CDMX](${SITE_URL}/masaje-ejecutivo-hombres-cdmx): sesiones de 30 a 50 min para hombres de oficina, enfocadas en cuello, hombros y espalda
+
+## English
+
+- [Massage for men in Mexico City](${SITE_URL}/en/massage-for-men-mexico-city): English-language page for visitors and expats — same services, locations in Roma Norte and Coyoacán, booking by WhatsApp in English.
 
 ## Blog
 

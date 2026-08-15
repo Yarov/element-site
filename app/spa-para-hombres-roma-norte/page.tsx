@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Spa para Hombres en Roma Norte — Masajes Exclusivos",
+  title: "Masajes para Hombres en Roma Norte — Spa Masculino desde $1,100",
   description:
-    "Visita ElementSpa en Roma Norte, CDMX. Masajes sensoriales, relajantes y tántricos exclusivos para caballeros. Ambiente discreto, terapeutas profesionales. Reserva por WhatsApp.",
+    "Masajes para hombres en la colonia Roma Norte, CDMX, desde $1,100. Sensoriales, relajantes y tántricos en cabinas privadas, a minutos del Metrobús. Reserva por WhatsApp.",
   alternates: {
     canonical: "/spa-para-hombres-roma-norte",
   },

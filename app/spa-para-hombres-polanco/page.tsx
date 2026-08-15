@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Spa para Hombres en Polanco — Masajes Exclusivos para Caballeros",
+  title: "Masaje Tántrico y Spa para Hombres en Polanco — desde $1,100",
   description:
-    "¿Buscas un spa masculino en Polanco? ElementSpa Roma Norte está a 15 minutos: masajes sensoriales, relajantes y tántricos para hombres en un ambiente privado y discreto. Reserva por WhatsApp.",
+    "Masajes tántricos y sensoriales para hombres cerca de Polanco, desde $1,100. ElementSpa está a 15 min por Reforma: cabinas privadas, discreción total. Reserva por WhatsApp.",
   alternates: {
     canonical: "/spa-para-hombres-polanco",
   },

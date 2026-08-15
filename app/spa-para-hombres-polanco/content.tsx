@@ -9,6 +9,10 @@ const faqs: ZoneFaq[] = [
     a: "Nuestra sucursal más cercana a Polanco está en Roma Norte, a unos 15 minutos en auto por Circuito Interior o Reforma. Muchos de nuestros clientes frecuentes vienen de Polanco, Anzures y Lomas: la discreción y calidad del servicio hacen que el trayecto valga la pena.",
   },
   {
+    q: "¿Dónde puedo recibir un masaje tántrico cerca de Polanco?",
+    a: "En nuestra sucursal de Roma Norte, a unos 15 minutos de Polanco. Ofrecemos tres experiencias tántricas: Piel a Piel (desde $2,250), Fantasía Compartida (desde $3,000) y Masaje 4 Manos (desde $4,000), todas con contacto corporal completo y estimulación final, en cabina privada.",
+  },
+  {
     q: "¿Por qué no hay spas de este tipo en Polanco?",
     a: "Los spas tradicionales de Polanco ofrecen tratamientos estéticos generales. ElementSpa es diferente: experiencias de masaje diseñadas exclusivamente para hombres, que van desde lo relajante hasta lo sensorial y tántrico, siempre en cabinas privadas y con total discreción.",
   },
@@ -43,8 +47,8 @@ export default function SpaPolancoPage() {
       waPage="spa cerca de Polanco"
       jsonLd={jsonLd}
       eyebrow="Polanco · Roma Norte, CDMX"
-      h1="Spa para Hombres en Polanco — La Experiencia que Tu Zona No Ofrece"
-      heroText="En Polanco hay de todo, menos esto. A 15 minutos, en Roma Norte, ElementSpa te espera con masajes sensoriales y tántricos diseñados exclusivamente para hombres: cabinas privadas, terapeutas profesionales y una discreción absoluta que nuestros clientes de Polanco valoran más que nada."
+      h1="Masaje Tántrico para Hombres en Polanco — ElementSpa"
+      heroText="En Polanco hay de todo, menos esto. A 15 minutos, en Roma Norte, ElementSpa te espera con masajes tántricos y sensoriales diseñados exclusivamente para hombres, desde $1,100: contacto piel a piel, cabinas privadas y una discreción absoluta que nuestros clientes de Polanco valoran más que nada."
       heroImage="/dark-luxury-spa-massage-room-with-candles-ambient-.jpg"
       heroImageAlt="ElementSpa — Spa masculino cerca de Polanco, CDMX"
       heroCtaLabel="Reservar desde Polanco"

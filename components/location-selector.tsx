@@ -8,9 +8,21 @@ interface LocationSelectorProps {
   onClose: () => void
   message: string
   servicio?: string
+  /** Textos del modal. Por defecto en español; se sobreescriben en páginas /en. */
+  title?: string
+  subtitle?: string
+  note?: string
 }
 
-export function LocationSelector({ isOpen, onClose, message, servicio }: LocationSelectorProps) {
+export function LocationSelector({
+  isOpen,
+  onClose,
+  message,
+  servicio,
+  title = "Selecciona tu Sucursal",
+  subtitle = "Elige la ubicación más conveniente para ti",
+  note = "Serás redirigido a WhatsApp para continuar",
+}: LocationSelectorProps) {
   if (!isOpen) return null
 
   const handleSelectLocation = (whatsapp: string, locationName: string) => {
@@ -37,8 +49,8 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
 
         {/* Header */}
         <div className="text-center mb-6">
-          <h3 className="text-xl font-serif mb-2">Selecciona tu Sucursal</h3>
-          <p className="text-sm text-muted-foreground">Elige la ubicación más conveniente para ti</p>
+          <h3 className="text-xl font-serif mb-2">{title}</h3>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
 
         {/* Location options */}
@@ -64,7 +76,7 @@ export function LocationSelector({ isOpen, onClose, message, servicio }: Locatio
         </div>
 
         {/* Footer */}
-        <p className="text-xs text-center text-muted-foreground mt-6">Serás redirigido a WhatsApp para continuar</p>
+        <p className="text-xs text-center text-muted-foreground mt-6">{note}</p>
       </div>
     </div>
   )

@@ -31,6 +31,9 @@ export function Footer() {
               <Link href="/masaje-tantrico-hombres-cdmx" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                 Masaje Tántrico
               </Link>
+              <Link href="/masaje-ejecutivo-hombres-cdmx" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Masaje Ejecutivo
+              </Link>
             </div>
           </div>
 
@@ -79,8 +82,12 @@ export function Footer() {
             <Link href="/aviso-de-privacidad" className="text-muted-foreground hover:text-foreground transition-colors">
               Aviso de Privacidad
             </Link>
-            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-              Términos y Condiciones
+            <Link
+              href="/en/massage-for-men-mexico-city"
+              hrefLang="en"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              English
             </Link>
           </div>
         </div>

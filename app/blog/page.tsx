@@ -6,9 +6,9 @@ import { getAllPosts } from "@/lib/blog"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Blog de Masajes para Hombres — Guías, Tipos y Qué Esperar",
   description:
-    "Artículos sobre bienestar, masajes sensoriales y relajación para hombres en Ciudad de México. Consejos, guías y novedades de ElementSpa.",
+    "Guías sobre masaje tántrico, sensorial y piel a piel para hombres: en qué consisten, qué esperar en tu primera vez y cómo elegir. Escrito por el equipo de ElementSpa en CDMX.",
   alternates: {
     canonical: "/blog",
   },

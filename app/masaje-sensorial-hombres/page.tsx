@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Masaje Sensorial para Hombres — Técnicas Suaves y Profundas",
+  title: "Masaje Sensorial para Hombres en CDMX — 30 min desde $1,100",
   description:
-    "Masaje sensorial para hombres en CDMX. Caricias suaves, estímulos con yemas de los dedos y técnicas envolventes que despiertan cada fibra de tu piel. Roma Norte y Coyoacán.",
+    "Masaje sensorial para hombres en CDMX desde $1,100 (30 min). Caricias suaves con yemas y uñas que despiertan cada fibra de tu piel. Roma Norte y Coyoacán. Reserva por WhatsApp.",
   alternates: {
     canonical: "/masaje-sensorial-hombres",
   },

@@ -5,6 +5,8 @@ import { ArrowLeft } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { getAllPosts, getPostBySlug } from "@/lib/blog"
 import { buildBreadcrumb, SITE_URL } from "@/lib/schema"
+import { CTAFinal } from "@/components/cta-final"
+import { WhatsAppFloat } from "@/components/whatsapp-float"
 
 export function generateStaticParams() {
   return getAllPosts().map((post) => ({ slug: post.slug }))
@@ -71,7 +73,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   ])
 
   return (
-    <main className="min-h-screen bg-background py-24 px-6">
+    <main className="min-h-screen bg-background pt-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
@@ -80,7 +82,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <article className="max-w-3xl mx-auto">
+      <article className="max-w-3xl mx-auto px-6">
         <Link
           href="/blog"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-12"
@@ -107,6 +109,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <MDXRemote source={content} />
         </div>
       </article>
+
+      <div className="mt-16">
+        <CTAFinal
+          heading="¿Listo para vivirlo en persona?"
+          description="Deja de leer sobre masajes y ven a experimentarlos. Reserva por WhatsApp en nuestras sucursales de Roma Norte o Coyoacán — atención inmediata, sin registros ni esperas."
+          waPage={`blog (${meta.title})`}
+        />
+      </div>
+      <WhatsAppFloat />
     </main>
   )
 }

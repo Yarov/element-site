@@ -35,7 +35,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-medium mb-4 text-foreground">Sucursales</h4>
+            <h4 className="font-medium mb-4 text-foreground">Sucursales y zonas</h4>
             <div className="flex flex-col gap-3">
               <Link href="/spa-para-hombres-roma-norte" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
@@ -44,6 +44,15 @@ export function Footer() {
               <Link href="/spa-para-hombres-coyoacan" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 Coyoacán
+              </Link>
+              <Link href="/spa-para-hombres-condesa" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Condesa
+              </Link>
+              <Link href="/spa-para-hombres-polanco" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Polanco
+              </Link>
+              <Link href="/spa-para-hombres-del-valle" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Del Valle
               </Link>
             </div>
           </div>
@@ -77,7 +86,12 @@ export function Footer() {
         </div>
 
         <p className="text-muted-foreground/60 text-xs text-center mt-6">
-          Atendiendo caballeros en: Roma Norte, Roma Sur, Condesa, Coyoacán, Del Valle, Polanco y San Ángel.
+          Atendiendo caballeros en:{" "}
+          <Link href="/spa-para-hombres-roma-norte" className="hover:text-primary transition-colors">Roma Norte</Link>, Roma Sur,{" "}
+          <Link href="/spa-para-hombres-condesa" className="hover:text-primary transition-colors">Condesa</Link>,{" "}
+          <Link href="/spa-para-hombres-coyoacan" className="hover:text-primary transition-colors">Coyoacán</Link>,{" "}
+          <Link href="/spa-para-hombres-del-valle" className="hover:text-primary transition-colors">Del Valle</Link>,{" "}
+          <Link href="/spa-para-hombres-polanco" className="hover:text-primary transition-colors">Polanco</Link> y San Ángel.
         </p>
       </div>
     </footer>

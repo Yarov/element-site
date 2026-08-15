@@ -3,6 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { getAllPosts } from "@/lib/blog"
+import { WhatsAppFloat } from "@/components/whatsapp-float"
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -68,6 +69,7 @@ export default function BlogPage() {
           ))}
         </div>
       </div>
+      <WhatsAppFloat />
     </main>
   )
 }

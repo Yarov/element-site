@@ -6,6 +6,10 @@ export const metadata: Metadata = {
     "6 masajes para hombres en CDMX desde $1,100: sensorial, relajante, descontracturante y tántrico. Precios claros, cabinas privadas en Roma Norte y Coyoacán. Reserva por WhatsApp.",
   alternates: {
     canonical: "/masajes-para-hombres-cdmx",
+    languages: {
+      "es-MX": "/masajes-para-hombres-cdmx",
+      en: "/en/massage-for-men-mexico-city",
+    },
   },
   openGraph: {
     title: "Masajes para Hombres en CDMX — ElementSpa",

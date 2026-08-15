@@ -53,6 +53,10 @@ ${Object.values(extraServices)
 - [Masaje sensorial para hombres](${SITE_URL}/masaje-sensorial-hombres): masaje sensorial (Caricias del Alma, Conexión Esencial)
 - [Masaje ejecutivo para hombres en CDMX](${SITE_URL}/masaje-ejecutivo-hombres-cdmx): sesiones de 30 a 50 min para hombres de oficina, enfocadas en cuello, hombros y espalda
 
+## English
+
+- [Massage for men in Mexico City](${SITE_URL}/en/massage-for-men-mexico-city): English-language page for visitors and expats — same services, locations in Roma Norte and Coyoacán, booking by WhatsApp in English.
+
 ## Blog
 
 ${posts.map((p) => `- [${p.title}](${SITE_URL}/blog/${p.slug}): ${p.description}`).join("\n")}

@@ -82,6 +82,13 @@ export function Footer() {
             <Link href="/aviso-de-privacidad" className="text-muted-foreground hover:text-foreground transition-colors">
               Aviso de Privacidad
             </Link>
+            <Link
+              href="/en/massage-for-men-mexico-city"
+              hrefLang="en"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              English
+            </Link>
           </div>
         </div>
 

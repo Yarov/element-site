@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Masaje Tántrico para Hombres en CDMX — Experiencia Premium",
+  title: "Masaje Tántrico para Hombres en CDMX — Precios desde $2,250",
   description:
-    "Descubre el masaje tántrico para hombres en CDMX. Técnicas de contacto corporal completo, estimulación sensorial y conexión profunda. Terapeutas profesionales en Roma Norte y Coyoacán.",
+    "Masaje tántrico para hombres en CDMX desde $2,250. Contacto piel a piel de 50 a 70 min, cabinas privadas y terapeutas profesionales en Roma Norte y Coyoacán. Reserva por WhatsApp.",
   alternates: {
     canonical: "/masaje-tantrico-hombres-cdmx",
   },

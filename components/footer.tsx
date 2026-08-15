@@ -31,6 +31,9 @@ export function Footer() {
               <Link href="/masaje-tantrico-hombres-cdmx" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                 Masaje Tántrico
               </Link>
+              <Link href="/masaje-ejecutivo-hombres-cdmx" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                Masaje Ejecutivo
+              </Link>
             </div>
           </div>
 

@@ -51,6 +51,7 @@ ${Object.values(extraServices)
 - [Masajes para hombres en CDMX](${SITE_URL}/masajes-para-hombres-cdmx): catálogo completo de servicios
 - [Masaje tántrico para hombres en CDMX](${SITE_URL}/masaje-tantrico-hombres-cdmx): experiencias tántricas (Piel a Piel, Fantasía Compartida, Masaje 4 Manos)
 - [Masaje sensorial para hombres](${SITE_URL}/masaje-sensorial-hombres): masaje sensorial (Caricias del Alma, Conexión Esencial)
+- [Masaje ejecutivo para hombres en CDMX](${SITE_URL}/masaje-ejecutivo-hombres-cdmx): sesiones de 30 a 50 min para hombres de oficina, enfocadas en cuello, hombros y espalda
 
 ## Blog
 

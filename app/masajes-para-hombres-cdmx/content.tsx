@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { MessageCircle, CheckCircle, Feather, Infinity, Flame, Heart, Sparkles, Flower2 } from "lucide-react"
+import Link from "next/link"
+import { MessageCircle, CheckCircle, MapPin, ArrowRight, Feather, Infinity, Flame, Heart, Sparkles, Flower2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -79,6 +80,14 @@ const faqJsonLd = {
   })),
 }
 
+const zonas = [
+  { name: "Roma Norte", href: "/spa-para-hombres-roma-norte", note: "Sucursal · Centro de la ciudad" },
+  { name: "Coyoacán", href: "/spa-para-hombres-coyoacan", note: "Sucursal · Sur de la ciudad" },
+  { name: "Condesa", href: "/spa-para-hombres-condesa", note: "A minutos de Roma Norte" },
+  { name: "Polanco", href: "/spa-para-hombres-polanco", note: "A 15 min de Roma Norte" },
+  { name: "Del Valle", href: "/spa-para-hombres-del-valle", note: "Entre ambas sucursales" },
+]
+
 export default function MasajesParaHombresPage() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState("")
@@ -126,9 +135,9 @@ export default function MasajesParaHombresPage() {
               Masajes para Hombres en CDMX — Sensoriales, Relajantes y Tántricos
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              ElementSpa ofrece 6 experiencias de masaje diseñadas exclusivamente para caballeros.
-              Ya sea que busques relajación profunda, alivio del estrés o una experiencia sensorial
-              completa, tenemos el servicio perfecto para ti.
+              6 experiencias de masaje diseñadas exclusivamente para caballeros, desde $1,100.
+              Dos sucursales en CDMX (Roma Norte y Coyoacán), cabinas privadas y reserva
+              inmediata por WhatsApp.
             </p>
             <Button
               size="lg"
@@ -142,65 +151,64 @@ export default function MasajesParaHombresPage() {
         </div>
       </section>
 
-      {/* Full Service Catalog */}
+      {/* Service Catalog — grid compacto con precios visibles */}
       <section className="py-20 bg-card">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-serif mb-4">
             Todos nuestros servicios de masaje
           </h2>
-          <p className="text-muted-foreground mb-12 max-w-2xl">
-            Cada experiencia ha sido diseñada con atención al detalle para combinar técnica profesional,
-            estimulación sensorial y un ambiente completamente privado.
+          <p className="text-muted-foreground mb-10 max-w-2xl">
+            Cada experiencia combina técnica profesional, estimulación sensorial y un ambiente
+            completamente privado. Elige la tuya y reserva en menos de un minuto.
           </p>
 
-          <div className="space-y-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
-              <div key={service.id} className="p-6 md:p-8 bg-background rounded-lg border border-border">
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="p-2 bg-primary/10 rounded-full mt-1">
-                    {iconMap[service.iconType]}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-serif text-2xl mb-1">{service.title}</h3>
-                    <p className="text-sm text-primary font-medium mb-3">{service.seoTitle}</p>
-                    <p className="text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">
-                      {service.description}
-                    </p>
-
-                    {service.price && (
-                      <div className="flex items-center gap-4 mb-4">
-                        <span className="text-sm bg-secondary px-3 py-1 rounded">{service.time}</span>
-                        <span className="text-primary font-semibold">{service.price}</span>
-                      </div>
-                    )}
-
-                    {service.options && (
-                      <div className="flex flex-wrap gap-4 mb-4">
-                        {service.options.map((option) => (
-                          <div key={option.name} className="bg-secondary/50 px-4 py-2 rounded">
-                            <span className="text-sm font-medium">{option.time}</span>
-                            <span className="text-primary font-semibold ml-3">{option.price}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <Button
-                      size="sm"
-                      onClick={() => handleReservar(service.title, getServiceDetail(service))}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Reservar
-                    </Button>
-                  </div>
+              <div key={service.id} className="p-6 bg-background rounded-lg border border-border flex flex-col">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-primary/10 rounded-full">{iconMap[service.iconType]}</div>
+                  <h3 className="font-serif text-lg">{service.title}</h3>
                 </div>
+                <p className="text-sm text-muted-foreground mb-3">{service.seoTitle}</p>
+
+                {service.price ? (
+                  <p className="text-sm text-primary font-medium mb-3">
+                    {service.time} · {service.price}
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {service.options?.map((option) => (
+                      <span key={option.name} className="text-xs bg-secondary/50 px-3 py-1.5 rounded">
+                        {option.time} · <span className="text-primary font-semibold">{option.price}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <details className="mb-4 group">
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors list-none flex items-center gap-1">
+                    <ArrowRight className="h-3 w-3 transition-transform group-open:rotate-90" />
+                    Ver descripción completa
+                  </summary>
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-3 whitespace-pre-line">
+                    {service.description}
+                  </p>
+                </details>
+
+                <Button
+                  size="sm"
+                  onClick={() => handleReservar(service.title, getServiceDetail(service))}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 mt-auto"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Reservar
+                </Button>
               </div>
             ))}
           </div>
 
           {/* Extras */}
-          <div className="mt-10 p-6 bg-background rounded-lg border border-border">
+          <div className="mt-8 p-6 bg-background rounded-lg border border-border">
             <h3 className="font-serif text-xl mb-4">Servicios Adicionales</h3>
             <div className="flex flex-wrap gap-6">
               <div className="flex items-center gap-3">
@@ -215,11 +223,48 @@ export default function MasajesParaHombresPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-10 text-center">
+            <Button
+              size="lg"
+              onClick={() => handleReservar()}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Reservar ahora
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Sucursales y zonas */}
+      <section className="py-20 bg-background">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-serif mb-4">¿Dónde nos encuentras?</h2>
+          <p className="text-muted-foreground mb-10 max-w-2xl">
+            Dos sucursales en la Ciudad de México con los mismos servicios, calidad y privacidad.
+            Elige la que te quede más cerca.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {zonas.map((zona) => (
+              <Link
+                key={zona.href}
+                href={zona.href}
+                className="p-5 bg-card rounded-lg border border-border hover:border-primary/50 transition-colors group"
+              >
+                <MapPin className="h-5 w-5 text-primary mb-3" />
+                <h3 className="font-serif text-lg mb-1 group-hover:text-primary transition-colors">
+                  {zona.name}
+                </h3>
+                <p className="text-xs text-muted-foreground">{zona.note}</p>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Why ElementSpa */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-card">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-serif mb-10">
             ¿Por qué elegir ElementSpa para tu masaje?
@@ -233,7 +278,7 @@ export default function MasajesParaHombresPage() {
               "Horario extendido de 11:00 a 19:00, los 7 días",
               "Reserva fácil y rápida por WhatsApp",
             ].map((benefit) => (
-              <div key={benefit} className="flex items-start gap-3 p-4 bg-card rounded-lg border border-border">
+              <div key={benefit} className="flex items-start gap-3 p-4 bg-background rounded-lg border border-border">
                 <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                 <p className="text-sm leading-relaxed">{benefit}</p>
               </div>
@@ -243,7 +288,7 @@ export default function MasajesParaHombresPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-card">
+      <section className="py-20 bg-background">
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-serif mb-10 text-center">
             Preguntas frecuentes sobre nuestros masajes
@@ -260,13 +305,13 @@ export default function MasajesParaHombresPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-card">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-serif mb-6">
             Elige tu experiencia y reserva hoy
           </h2>
           <p className="text-muted-foreground mb-8 leading-relaxed">
-            Más de 6 experiencias de masaje te esperan en nuestras sucursales de Roma Norte y Coyoacán.
+            6 experiencias de masaje te esperan en nuestras sucursales de Roma Norte y Coyoacán.
             Reserva por WhatsApp y vive el mejor masaje para hombres en CDMX.
           </p>
           <Button

@@ -29,3 +29,6 @@ next-env.d.ts
 # claude/agents
 .agents/
 .claude/
+
+# local analytics reports (nunca subir)
+/reports/

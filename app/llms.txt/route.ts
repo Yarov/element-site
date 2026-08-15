@@ -45,6 +45,9 @@ ${Object.values(extraServices)
 - [Inicio](${SITE_URL}/): servicios, precios y preguntas frecuentes
 - [Spa para hombres en Roma Norte](${SITE_URL}/spa-para-hombres-roma-norte): sucursal Roma Norte
 - [Spa para hombres en Coyoacán](${SITE_URL}/spa-para-hombres-coyoacan): sucursal Coyoacán
+- [Spa para hombres en la Condesa](${SITE_URL}/spa-para-hombres-condesa): atención a la zona Condesa e Hipódromo desde Roma Norte
+- [Spa para hombres en Polanco](${SITE_URL}/spa-para-hombres-polanco): atención a la zona Polanco, Anzures y Lomas desde Roma Norte
+- [Spa para hombres en Del Valle](${SITE_URL}/spa-para-hombres-del-valle): atención a Del Valle, Nápoles y Narvarte desde ambas sucursales
 - [Masajes para hombres en CDMX](${SITE_URL}/masajes-para-hombres-cdmx): catálogo completo de servicios
 - [Masaje tántrico para hombres en CDMX](${SITE_URL}/masaje-tantrico-hombres-cdmx): experiencias tántricas (Piel a Piel, Fantasía Compartida, Masaje 4 Manos)
 - [Masaje sensorial para hombres](${SITE_URL}/masaje-sensorial-hombres): masaje sensorial (Caricias del Alma, Conexión Esencial)

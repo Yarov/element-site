@@ -6,7 +6,18 @@ import { Button } from "@/components/ui/button"
 import { LocationSelector } from "@/components/location-selector"
 import { buildWhatsAppMessage } from "@/lib/data"
 
-export function CTAFinal() {
+interface CTAFinalProps {
+  heading?: string
+  description?: string
+  /** Página de origen para atribución en el mensaje de WhatsApp */
+  waPage?: string
+}
+
+export function CTAFinal({
+  heading = "Vive una experiencia de masaje exclusiva para hombres en CDMX",
+  description = "Reserva hoy y descubre por qué cientos de caballeros eligen ElementSpa como su espacio de relajación y bienestar. Atención inmediata por WhatsApp.",
+  waPage = "spa para hombres en CDMX",
+}: CTAFinalProps) {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
 
   const handleReservar = () => {
@@ -18,11 +29,10 @@ export function CTAFinal() {
       <section className="py-24 bg-card">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-serif leading-tight mb-6 text-balance">
-            Vive una experiencia de masaje exclusiva para hombres en CDMX
+            {heading}
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-8 max-w-xl mx-auto">
-            Reserva hoy y descubre por qué cientos de caballeros eligen ElementSpa como su espacio de
-            relajación y bienestar. Atención inmediata por WhatsApp.
+            {description}
           </p>
           <Button
             size="lg"
@@ -38,7 +48,7 @@ export function CTAFinal() {
       <LocationSelector
         isOpen={showLocationSelector}
         onClose={() => setShowLocationSelector(false)}
-        message={buildWhatsAppMessage({ page: "spa para hombres en CDMX" })}
+        message={buildWhatsAppMessage({ page: waPage })}
       />
     </>
   )

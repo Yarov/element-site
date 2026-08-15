@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { LocationSelector } from "@/components/location-selector"
 import { services, buildWhatsAppMessage, getServiceDetail } from "@/lib/data"
+import { buildOffersForServices, buildBreadcrumb } from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
 
 const localJsonLd = {
@@ -35,7 +36,14 @@ const localJsonLd = {
       closes: "19:00",
     },
   ],
+  priceRange: "$1,100 - $5,000 MXN",
+  makesOffer: buildOffersForServices(),
 }
+
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Inicio", path: "/" },
+  { name: "Spa para Hombres en Coyoacán", path: "/spa-para-hombres-coyoacan" },
+])
 
 const faqs = [
   {
@@ -87,6 +95,10 @@ export default function SpaCoyoacanPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* Hero */}

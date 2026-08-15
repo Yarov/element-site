@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { Instagram, MessageCircle } from "lucide-react"
-import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
 
 export function Footer() {
 

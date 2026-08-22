@@ -9,34 +9,39 @@ import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { LocationSelector } from "@/components/location-selector"
 import { services, buildWhatsAppMessage, getServiceDetail } from "@/lib/data"
-import { buildOffersForServices, buildBreadcrumb } from "@/lib/schema"
+import {
+  buildOffersForServices,
+  buildBreadcrumb,
+  buildServiceArea,
+  AGGREGATE_RATING,
+  OPENING_HOURS,
+  SPA_ROMA_NORTE_ID,
+  ORG_ID,
+  AUTHOR_ID,
+} from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
+import { ReviewsMarkup } from "@/components/reviews-markup"
 
 const localJsonLd = {
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
+  "@id": SPA_ROMA_NORTE_ID,
   name: "ElementSpa Roma Norte",
   url: "https://elementspa.mx/spa-para-hombres-roma-norte",
   image: "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
   description:
     "Spa para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos exclusivos para caballeros en un ambiente privado y discreto.",
   telephone: "+525647114561",
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Roma Norte",
-    addressRegion: "CDMX",
-    addressCountry: "MX",
-  },
+  serviceArea: buildServiceArea("romaNorte"),
   areaServed: ["Roma Norte", "Roma Sur", "Condesa", "Juárez", "Del Valle", "Polanco"],
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "11:00",
-      closes: "19:00",
-    },
-  ],
+  openingHoursSpecification: [OPENING_HOURS],
   priceRange: "$1,100 - $5,000 MXN",
+  priceCurrency: "MXN",
+  paymentAccepted: "Efectivo, tarjeta de crédito, tarjeta de débito",
+  currenciesAccepted: "MXN",
+  aggregateRating: AGGREGATE_RATING,
+  parentOrganization: { "@id": ORG_ID },
+  author: { "@id": AUTHOR_ID },
   makesOffer: buildOffersForServices(),
 }
 
@@ -100,6 +105,7 @@ export default function SpaRomaNortePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      <ReviewsMarkup branch="romaNorte" />
 
       {/* Hero */}
       <section className="relative pt-32 pb-20">

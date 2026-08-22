@@ -25,7 +25,7 @@ const jsonLd = [
     image: "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
     description:
       "Spa masculino a minutos de la Condesa, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos exclusivos para hombres, en nuestra sucursal de Roma Norte.",
-    branchLocality: "Roma Norte",
+    branchLocality: "romaNorte",
     areaServed: ["Condesa", "Hipódromo", "Hipódromo Condesa", "Escandón", "Roma Norte"],
     makesOffer: buildOffersForServices(),
   }),

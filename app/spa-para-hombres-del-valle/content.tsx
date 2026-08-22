@@ -25,7 +25,7 @@ const jsonLd = [
     image: "https://elementspa.mx/man-relaxing-spa-treatment-massage.jpg",
     description:
       "Spa masculino que atiende Del Valle, Nápoles y Narvarte desde sus dos sucursales cercanas en Roma Norte y Coyoacán, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos exclusivos para hombres.",
-    branchLocality: "Coyoacán",
+    branchLocality: "coyoacan",
     areaServed: ["Del Valle", "Nápoles", "Narvarte", "Portales", "San José Insurgentes"],
     makesOffer: buildOffersForServices(),
   }),

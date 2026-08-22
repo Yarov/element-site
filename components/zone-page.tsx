@@ -9,6 +9,13 @@ import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { LocationSelector } from "@/components/location-selector"
 import { services, buildWhatsAppMessage, getServiceDetail } from "@/lib/data"
+import {
+  buildServiceArea,
+  AGGREGATE_RATING,
+  OPENING_HOURS,
+  ORG_ID,
+  AUTHOR_ID,
+} from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
 
 export interface ZoneFaq {
@@ -240,8 +247,9 @@ export function ZonePage(config: ZonePageConfig) {
 }
 
 /** Helper para el JSON-LD de negocio local de una página de zona.
- *  Importante: la dirección es la de la sucursal REAL que atiende la zona
- *  (no inventamos direcciones) y la zona va en areaServed. */
+ *  Importante: NO publicamos dirección exacta por privacidad. Solo señalamos
+ *  el serviceArea (GeoCircle de la sucursal real que atiende la zona) y
+ *  areaServed con las colonias que atendemos desde ahí. */
 export function buildZoneBusinessJsonLd({
   name,
   url,
@@ -255,7 +263,7 @@ export function buildZoneBusinessJsonLd({
   url: string
   image: string
   description: string
-  branchLocality: string
+  branchLocality: "romaNorte" | "coyoacan"
   areaServed: string[]
   makesOffer: object[]
 }) {
@@ -267,22 +275,16 @@ export function buildZoneBusinessJsonLd({
     image,
     description,
     telephone: "+525647114561",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: branchLocality,
-      addressRegion: "CDMX",
-      addressCountry: "MX",
-    },
+    serviceArea: buildServiceArea(branchLocality),
     areaServed,
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        opens: "11:00",
-        closes: "19:00",
-      },
-    ],
+    openingHoursSpecification: [OPENING_HOURS],
     priceRange: "$1,100 - $5,000 MXN",
+    priceCurrency: "MXN",
+    paymentAccepted: "Efectivo, tarjeta de crédito, tarjeta de débito",
+    currenciesAccepted: "MXN",
+    aggregateRating: AGGREGATE_RATING,
+    parentOrganization: { "@id": ORG_ID },
+    author: { "@id": AUTHOR_ID },
     makesOffer,
   }
 }

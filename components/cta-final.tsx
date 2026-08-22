@@ -15,7 +15,7 @@ interface CTAFinalProps {
 
 export function CTAFinal({
   heading = "Vive una experiencia de masaje exclusiva para hombres en CDMX",
-  description = "Reserva hoy y descubre por qué cientos de caballeros eligen ElementSpa como su espacio de relajación y bienestar. Atención inmediata por WhatsApp.",
+  description = "Reserva hoy y descubre un espacio privado de relajación y bienestar para hombres adultos. Atención por WhatsApp oficial.",
   waPage = "spa para hombres en CDMX",
 }: CTAFinalProps) {
   const [showLocationSelector, setShowLocationSelector] = useState(false)

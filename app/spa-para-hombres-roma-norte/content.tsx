@@ -13,14 +13,11 @@ import {
   buildOffersForServices,
   buildBreadcrumb,
   buildServiceArea,
-  AGGREGATE_RATING,
   OPENING_HOURS,
   SPA_ROMA_NORTE_ID,
   ORG_ID,
-  AUTHOR_ID,
 } from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
-import { ReviewsMarkup } from "@/components/reviews-markup"
 
 const localJsonLd = {
   "@context": "https://schema.org",
@@ -39,9 +36,7 @@ const localJsonLd = {
   priceCurrency: "MXN",
   paymentAccepted: "Efectivo, tarjeta de crédito, tarjeta de débito",
   currenciesAccepted: "MXN",
-  aggregateRating: AGGREGATE_RATING,
   parentOrganization: { "@id": ORG_ID },
-  author: { "@id": AUTHOR_ID },
   makesOffer: buildOffersForServices(),
 }
 
@@ -105,7 +100,6 @@ export default function SpaRomaNortePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ReviewsMarkup branch="romaNorte" />
 
       {/* Hero */}
       <section className="relative pt-32 pb-20">
@@ -280,8 +274,8 @@ export default function SpaRomaNortePage() {
             Reserva tu experiencia en Roma Norte
           </h2>
           <p className="text-muted-foreground mb-8 leading-relaxed">
-            Descubre por qué ElementSpa Roma Norte es el spa favorito de cientos de caballeros en la
-            Ciudad de México. Agenda tu cita hoy por WhatsApp.
+            Descubre una experiencia privada de masaje para hombres en Roma Norte. Agenda tu cita hoy por
+            WhatsApp.
           </p>
           <Button
             size="lg"

@@ -25,12 +25,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: "/aviso-de-privacidad",
       },
       {
         userAgent: AI_BOTS,
         allow: "/",
-        disallow: "/aviso-de-privacidad",
       },
     ],
     sitemap: "https://elementspa.mx/sitemap.xml",

@@ -7,13 +7,10 @@ import {
   SITE_URL,
   ORG_ID,
   WEBSITE_ID,
-  AUTHOR_ID,
   SPA_ROMA_NORTE_ID,
   SPA_COYOACAN_ID,
-  AGGREGATE_RATING,
   OPENING_HOURS,
   buildServiceArea,
-  buildOffersForServices,
 } from "@/lib/schema"
 
 const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
@@ -71,7 +68,6 @@ const organizationJsonLd = {
   },
   description:
     "Spa exclusivo para hombres en CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos en Roma Norte y Coyoacán. Atención discreta y profesional para caballeros.",
-  foundingDate: "2021",
   sameAs: ["https://www.instagram.com/elementspamx"],
   contactPoint: {
     "@type": "ContactPoint",
@@ -82,8 +78,6 @@ const organizationJsonLd = {
     areaServed: { "@type": "Country", name: "México" },
     contactOption: "WhatsApp",
   },
-  member: { "@id": AUTHOR_ID },
-  aggregateRating: AGGREGATE_RATING,
   department: [
     {
       "@type": "HealthAndBeautyBusiness",
@@ -99,7 +93,6 @@ const organizationJsonLd = {
       openingHoursSpecification: [OPENING_HOURS],
       priceRange: "$1,100 - $5,000 MXN",
       priceCurrency: "MXN",
-      aggregateRating: AGGREGATE_RATING,
       parentOrganization: { "@id": ORG_ID },
     },
     {
@@ -116,7 +109,6 @@ const organizationJsonLd = {
       openingHoursSpecification: [OPENING_HOURS],
       priceRange: "$1,100 - $5,000 MXN",
       priceCurrency: "MXN",
-      aggregateRating: AGGREGATE_RATING,
       parentOrganization: { "@id": ORG_ID },
     },
   ],
@@ -131,29 +123,6 @@ const websiteJsonLd = {
   alternateName: "Element Spa CDMX",
   inLanguage: ["es-MX", "en"],
   publisher: { "@id": ORG_ID },
-  potentialAction: {
-    "@type": "ReserveAction",
-    name: "Reservar por WhatsApp",
-    target: {
-      "@type": "EntryPoint",
-      urlTemplate: "https://wa.me/525647114561?text=Hola%2C%20quiero%20reservar%20en%20ElementSpa",
-      actionPlatform: ["https://schema.org/WhatsApp"],
-      inLanguage: ["es-MX", "en"],
-    },
-    result: {
-      "@type": "Reservation",
-      name: "Cita en ElementSpa",
-    },
-  },
-}
-
-const authorJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": AUTHOR_ID,
-  name: "Equipo ElementSpa",
-  url: SITE_URL,
-  worksFor: { "@id": ORG_ID },
 }
 
 export default function RootLayout({
@@ -161,38 +130,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const localBusiness = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "@id": `${SITE_URL}#localbusiness`,
-    name: "ElementSpa",
-    url: SITE_URL,
-    image: "https://elementspa.mx/dark-luxury-spa-massage-room-with-candles-ambient-.jpg",
-    description:
-      "Spa exclusivo para hombres en CDMX con sucursales en Roma Norte y Coyoacán. Reservas por WhatsApp.",
-    telephone: "+52-56-4711-4561",
-    priceRange: "$1,100 - $5,000 MXN",
-    paymentAccepted: "Efectivo, tarjeta de crédito, tarjeta de débito",
-    currenciesAccepted: "MXN",
-    openingHoursSpecification: [OPENING_HOURS],
-    parentOrganization: { "@id": ORG_ID },
-    aggregateRating: AGGREGATE_RATING,
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: "Servicios ElementSpa",
-      itemListElement: buildOffersForServices().map((offer) => ({
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: offer.name,
-          description: offer.description,
-        },
-        price: offer.price,
-        priceCurrency: offer.priceCurrency,
-      })),
-    },
-  }
-
   return (
     <html lang="es-MX">
       <head>
@@ -212,14 +149,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(authorJsonLd) }}
         />
       </head>
       <body className={`${_playfair.variable} ${_inter.variable} font-sans antialiased`}>

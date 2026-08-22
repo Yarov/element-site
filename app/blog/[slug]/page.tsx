@@ -7,7 +7,6 @@ import { getAllPosts, getPostBySlug } from "@/lib/blog"
 import {
   buildBreadcrumb,
   SITE_URL,
-  AUTHOR_ID,
   ORG_ID,
 } from "@/lib/schema"
 import { CTAFinal } from "@/components/cta-final"
@@ -62,10 +61,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     isPartOf: { "@id": SITE_URL },
     author: {
       "@type": "Organization",
-      "@id": AUTHOR_ID,
-      name: "Equipo ElementSpa",
+      "@id": ORG_ID,
+      name: "ElementSpa",
       url: SITE_URL,
-      worksFor: { "@id": ORG_ID },
     },
     publisher: {
       "@type": "Organization",

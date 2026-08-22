@@ -9,7 +9,6 @@ export const SITE_URL = "https://elementspa.mx"
  */
 export const ORG_ID = "https://elementspa.mx/#organization"
 export const WEBSITE_ID = "https://elementspa.mx/#website"
-export const AUTHOR_ID = "https://elementspa.mx/#author-elementspa"
 export const SPA_ROMA_NORTE_ID = "https://elementspa.mx/#spa-roma-norte"
 export const SPA_COYOACAN_ID = "https://elementspa.mx/#spa-coyoacan"
 
@@ -37,15 +36,6 @@ export function buildServiceArea(colonia: ColoniaKey) {
     },
     geoRadius: c.radius,
   }
-}
-
-/** A single aggregate-rating payload used by every branch schema. */
-export const AGGREGATE_RATING = {
-  "@type": "AggregateRating" as const,
-  ratingValue: 5,
-  reviewCount: 3,
-  bestRating: 5,
-  worstRating: 1,
 }
 
 /** A single opening-hours spec reused across branches. */

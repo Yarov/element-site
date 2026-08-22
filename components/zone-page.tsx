@@ -11,10 +11,8 @@ import { LocationSelector } from "@/components/location-selector"
 import { services, buildWhatsAppMessage, getServiceDetail } from "@/lib/data"
 import {
   buildServiceArea,
-  AGGREGATE_RATING,
   OPENING_HOURS,
   ORG_ID,
-  AUTHOR_ID,
 } from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
 
@@ -282,9 +280,7 @@ export function buildZoneBusinessJsonLd({
     priceCurrency: "MXN",
     paymentAccepted: "Efectivo, tarjeta de crédito, tarjeta de débito",
     currenciesAccepted: "MXN",
-    aggregateRating: AGGREGATE_RATING,
     parentOrganization: { "@id": ORG_ID },
-    author: { "@id": AUTHOR_ID },
     makesOffer,
   }
 }

@@ -38,14 +38,6 @@ const faqs = [
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  speakable: {
-    "@type": "SpeakableSpecification",
-    xpath: [
-      "/html/body//section[@id='faq']//h2",
-      "/html/body//section[@id='faq']//h3",
-      "/html/body//section[@id='faq']//button",
-    ],
-  },
   mainEntity: faqs.map((faq) => ({
     "@type": "Question",
     name: faq.question,

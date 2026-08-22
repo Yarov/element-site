@@ -16,75 +16,73 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: baseUrl,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
       url: `${baseUrl}/blog`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/spa-para-hombres-roma-norte`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/spa-para-hombres-coyoacan`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/spa-para-hombres-condesa`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/spa-para-hombres-polanco`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/spa-para-hombres-del-valle`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/masaje-tantrico-hombres-cdmx`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/masajes-para-hombres-cdmx`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/masaje-sensorial-hombres`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/masaje-ejecutivo-hombres-cdmx`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/en/massage-for-men-mexico-city`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/privacidad-seguridad-y-reservas`,
+      changeFrequency: "yearly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/aviso-de-privacidad`,
+      changeFrequency: "yearly",
+      priority: 0.4,
     },
     ...blogEntries,
   ]

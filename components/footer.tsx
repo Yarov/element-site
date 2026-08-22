@@ -83,6 +83,12 @@ export function Footer() {
               Aviso de Privacidad
             </Link>
             <Link
+              href="/privacidad-seguridad-y-reservas"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Seguridad y Reservas
+            </Link>
+            <Link
               href="/en/massage-for-men-mexico-city"
               hrefLang="en"
               className="text-muted-foreground hover:text-foreground transition-colors"

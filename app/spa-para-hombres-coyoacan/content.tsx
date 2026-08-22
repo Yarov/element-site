@@ -13,14 +13,11 @@ import {
   buildOffersForServices,
   buildBreadcrumb,
   buildServiceArea,
-  AGGREGATE_RATING,
   OPENING_HOURS,
   SPA_COYOACAN_ID,
   ORG_ID,
-  AUTHOR_ID,
 } from "@/lib/schema"
 import { ViewContentTracker } from "@/components/view-content-tracker"
-import { ReviewsMarkup } from "@/components/reviews-markup"
 
 const localJsonLd = {
   "@context": "https://schema.org",
@@ -39,9 +36,7 @@ const localJsonLd = {
   priceCurrency: "MXN",
   paymentAccepted: "Efectivo, tarjeta de crédito, tarjeta de débito",
   currenciesAccepted: "MXN",
-  aggregateRating: AGGREGATE_RATING,
   parentOrganization: { "@id": ORG_ID },
-  author: { "@id": AUTHOR_ID },
   makesOffer: buildOffersForServices(),
 }
 
@@ -105,7 +100,6 @@ export default function SpaCoyoacanPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ReviewsMarkup branch="coyoacan" />
 
       {/* Hero */}
       <section className="relative pt-32 pb-20">

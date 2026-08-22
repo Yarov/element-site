@@ -4,7 +4,12 @@ import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { getAllPosts, getPostBySlug } from "@/lib/blog"
-import { buildBreadcrumb, SITE_URL } from "@/lib/schema"
+import {
+  buildBreadcrumb,
+  SITE_URL,
+  AUTHOR_ID,
+  ORG_ID,
+} from "@/lib/schema"
 import { CTAFinal } from "@/components/cta-final"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
 
@@ -46,23 +51,42 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": `${SITE_URL}/blog/${slug}#article`,
     headline: meta.title,
     description: meta.description,
     image: `${SITE_URL}${meta.image}`,
     datePublished: meta.date,
+    dateModified: meta.date,
     url: `${SITE_URL}/blog/${slug}`,
     inLanguage: "es-MX",
+    isPartOf: { "@id": SITE_URL },
     author: {
       "@type": "Organization",
-      name: "ElementSpa",
+      "@id": AUTHOR_ID,
+      name: "Equipo ElementSpa",
       url: SITE_URL,
+      worksFor: { "@id": ORG_ID },
     },
     publisher: {
       "@type": "Organization",
+      "@id": ORG_ID,
       name: "ElementSpa",
       url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/apple-icon.png`,
+        width: 512,
+        height: 512,
+      },
     },
-    mainEntityOfPage: `${SITE_URL}/blog/${slug}`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/blog/${slug}`,
+    },
+    about: {
+      "@type": "Thing",
+      name: "Masajes para hombres en CDMX",
+    },
     ...(meta.tags?.length ? { keywords: meta.tags.join(", ") } : {}),
   }
 

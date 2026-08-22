@@ -29,7 +29,7 @@ const jsonLd = [
     image: "https://elementspa.mx/dark-luxury-spa-massage-room-with-candles-ambient-.jpg",
     description:
       "Spa masculino que atiende Polanco y alrededores desde Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos exclusivos para hombres.",
-    branchLocality: "Roma Norte",
+    branchLocality: "romaNorte",
     areaServed: ["Polanco", "Anzures", "Lomas de Chapultepec", "Granada", "Verónica Anzures"],
     makesOffer: buildOffersForServices(),
   }),

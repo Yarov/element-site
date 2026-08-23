@@ -5,6 +5,7 @@ import { MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LocationSelector } from "@/components/location-selector"
 import { buildWhatsAppMessage } from "@/lib/data"
+import { MarketingSlot } from "@/components/marketing-runtime"
 
 interface CTAFinalProps {
   heading?: string
@@ -44,6 +45,7 @@ export function CTAFinal({
           </Button>
         </div>
       </section>
+      <MarketingSlot slot="service.cta" />
 
       <LocationSelector
         isOpen={showLocationSelector}

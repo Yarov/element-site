@@ -1,4 +1,9 @@
-import { trackLead } from "@/lib/meta-tracking"
+import { trackLead } from "@/lib/meta-tracking";
+import {
+  recordSelectedBranch,
+  recordSelectedService,
+  recordWhatsappBookingIntent,
+} from "@/lib/surveys/visitor-signals";
 
 export const locations = {
   condesa: {
@@ -9,7 +14,7 @@ export const locations = {
     name: "Coyoacán",
     whatsapp: "+525647114561",
   },
-}
+};
 
 export const extraServices = {
   extra_10_min: {
@@ -20,33 +25,39 @@ export const extraServices = {
     name: "1 estimulación extra",
     price: 350,
   },
-}
+};
 
 export interface ServiceOption {
-  name: string
-  time: string
-  price: string
-  estimulations: number
-  description?: string
+  name: string;
+  time: string;
+  price: string;
+  estimulations: number;
+  description?: string;
 }
 
 export interface Service {
-  id: number
-  title: string
-  seoTitle: string
-  price?: string
-  time?: string
-  description: string
-  estimulations?: number
-  iconType: string
-  options?: ServiceOption[]
+  id: number;
+  title: string;
+  seoTitle: string;
+  price?: string;
+  time?: string;
+  description: string;
+  estimulations?: number;
+  iconType: string;
+  options?: ServiceOption[];
+}
+
+export interface WhatsAppBookingSignalIds {
+  branchId?: string;
+  serviceId?: string;
 }
 
 export const services: Service[] = [
   {
     id: 1,
     title: "CARICIAS DEL ALMA",
-    seoTitle: "Masaje sensorial suave para despertar el cuerpo con caricias envolventes",
+    seoTitle:
+      "Masaje sensorial suave para despertar el cuerpo con caricias envolventes",
     price: "$1,100",
     time: "30 min",
     description:
@@ -57,7 +68,8 @@ export const services: Service[] = [
   {
     id: 2,
     title: "CONEXIÓN ESENCIAL",
-    seoTitle: "Masaje relajante de cuerpo completo ideal para liberar tensión y estrés",
+    seoTitle:
+      "Masaje relajante de cuerpo completo ideal para liberar tensión y estrés",
     price: "$1,350",
     time: "50 min",
     description:
@@ -68,7 +80,8 @@ export const services: Service[] = [
   {
     id: 3,
     title: "ENERGÍA VITAL",
-    seoTitle: "Masaje descontracturante profundo que combina fuerza y técnica liberadora",
+    seoTitle:
+      "Masaje descontracturante profundo que combina fuerza y técnica liberadora",
     price: "$1,550",
     time: "50 min",
     description:
@@ -79,7 +92,8 @@ export const services: Service[] = [
   {
     id: 4,
     title: "PIEL A PIEL",
-    seoTitle: "Masaje tántrico piel a piel con contacto corporal completo y estimulación",
+    seoTitle:
+      "Masaje tántrico piel a piel con contacto corporal completo y estimulación",
     iconType: "heart",
     description:
       "La experiencia que despierta cada rincón de tu cuerpo comienza con suaves estímulos mientras estas boca abajo; son objetos delicados que recorren tu piel provocando despertar tus sentidos y preparando tu cuerpo para lo que viene. Una vez listo, la terapeuta se deslizará sobre de ti en topless utilizando todo su cuerpo (torso, pecho, brazos y piernas) para darte un masaje íntimo, intenso y muy sensual. Después de unos minutos, la terapeuta te pedirá que gires para continuar con tu masaje piel a piel hasta provocar tu erección y estimularte con sus manos.",
@@ -103,7 +117,8 @@ export const services: Service[] = [
   {
     id: 5,
     title: "FANTASÍA COMPARTIDA",
-    seoTitle: "Experiencia interactiva y sensual donde tú también participas del masaje",
+    seoTitle:
+      "Experiencia interactiva y sensual donde tú también participas del masaje",
     iconType: "stars",
     description:
       "Cumple uno de los deseos más prohibidos. Comienza dándole un masaje a tu terapeuta mientras ella te guía con el cuerpo semi desnudo (topless), creando una conexión íntima y única. Después, te relajarás por completo mientras ella toma el control y te brinda un masaje piel a piel caracterizado por la sensualidad y lo estimulante que transformará el momento hasta llevarte a un completo estado de éxtasis y terminando con tu eyaculación.",
@@ -125,7 +140,8 @@ export const services: Service[] = [
   {
     id: 6,
     title: "MASAJE 4 MANOS",
-    seoTitle: "Masaje a cuatro manos con dos terapeutas sincronizadas para máximo placer",
+    seoTitle:
+      "Masaje a cuatro manos con dos terapeutas sincronizadas para máximo placer",
     iconType: "lotus",
     description:
       "Doble contacto, doble placer. Déjate llevar por una experiencia incomparable donde dos terapeutas en topless sincronizan sus cuerpos para despertar todos tus sentidos. En este masaje ambas recorrerán cada parte de tu cuerpo con el suyo dejándote tocar y echando a andar tu imaginación para mantener tu erección el mayor tiempo posible hasta llegar a una estimulación coordinada para que puedas disfrutar de un estado de placer absoluto.",
@@ -144,19 +160,26 @@ export const services: Service[] = [
       },
     ],
   },
-]
+];
+
+export function getServiceCatalogId(serviceTitle?: string) {
+  const service = services.find(
+    (candidate) => candidate.title === serviceTitle,
+  );
+  return service ? String(service.id) : undefined;
+}
 
 declare global {
   interface Window {
-    dataLayer: Record<string, unknown>[]
+    dataLayer: Record<string, unknown>[];
   }
 }
 
 /** Convierte "$1,350" -> 1350. Devuelve undefined si no hay precio parseable. */
 function parsePrice(price?: string): number | undefined {
-  if (!price) return undefined
-  const n = Number(price.replace(/[^0-9.]/g, ""))
-  return Number.isFinite(n) && n > 0 ? n : undefined
+  if (!price) return undefined;
+  const n = Number(price.replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
 /**
@@ -169,18 +192,28 @@ function parsePrice(price?: string): number | undefined {
  * un lead de MASAJE 4 MANOS ($4,000) no vale lo mismo que uno de $1,100.
  */
 export function getLeadValue(servicio?: string): number | undefined {
-  if (!servicio) return undefined
-  const service = services.find((s) => s.title === servicio)
-  if (!service) return undefined
-  if (service.price) return parsePrice(service.price)
+  if (!servicio) return undefined;
+  const service = services.find((s) => s.title === servicio);
+  if (!service) return undefined;
+  if (service.price) return parsePrice(service.price);
   const optionPrices = (service.options ?? [])
     .map((o) => parsePrice(o.price))
-    .filter((p): p is number => p !== undefined)
-  return optionPrices.length ? Math.min(...optionPrices) : undefined
+    .filter((p): p is number => p !== undefined);
+  return optionPrices.length ? Math.min(...optionPrices) : undefined;
 }
 
-export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: string) {
-  if (typeof window === 'undefined') return
+export function trackWhatsAppClick(
+  sucursal: string,
+  waUrl: string,
+  servicio?: string,
+  signalIds?: WhatsAppBookingSignalIds,
+) {
+  if (typeof window === "undefined") return;
+
+  // Store only catalog IDs and the intent timestamp before telemetry or navigation.
+  if (signalIds?.serviceId) recordSelectedService(signalIds.serviceId);
+  if (signalIds?.branchId) recordSelectedBranch(signalIds.branchId);
+  recordWhatsappBookingIntent();
 
   // 1) Disparar tracking PRIMERO (sync) — fbq + fetch keepalive a /api/meta-capi.
   //    trackLead retorna inmediato; el fetch se inicia en este tick síncrono y
@@ -190,41 +223,45 @@ export function trackWhatsAppClick(sucursal: string, waUrl: string, servicio?: s
   //    Si se invoca window.open ANTES, en iOS Safari el cambio de contexto
   //    aborta el fetch aunque tenga keepalive y se pierde el evento CAPI
   //    server-side (~50% de los Lead events en mobile).
-  trackLead(sucursal, servicio, getLeadValue(servicio))
+  trackLead(sucursal, servicio, getLeadValue(servicio));
 
   // 2) Abrir WhatsApp INMEDIATAMENTE en el siguiente statement síncrono del
   //    mismo handler de click, para preservar el "user gesture" y evitar
   //    que iOS/Android bloqueen el popup.
-  const waWindow = window.open(waUrl, '_blank')
+  const waWindow = window.open(waUrl, "_blank");
 
   // 3) Fallback si el navegador bloqueó el popup
   if (!waWindow) {
-    window.location.href = waUrl
+    window.location.href = waUrl;
   }
 }
 
 export function getServiceDetail(service: Service): string {
   return service.price
     ? `${service.time} - ${service.price}`
-    : `Desde ${service.options?.[0].price}`
+    : `Desde ${service.options?.[0].price}`;
 }
 
-export function buildWhatsAppMessage({ page, servicio, detalle }: {
-  page: string
-  servicio?: string
-  detalle?: string
+export function buildWhatsAppMessage({
+  page,
+  servicio,
+  detalle,
+}: {
+  page: string;
+  servicio?: string;
+  detalle?: string;
 }): string {
-  const lines = [`Hola, vi la página de ${page} de ElementSpa.`]
-  lines.push("Quiero agendar en la sucursal {sucursal}.")
+  const lines = [`Hola, vi la página de ${page} de ElementSpa.`];
+  lines.push("Quiero agendar en la sucursal {sucursal}.");
   if (servicio) {
-    const info = detalle ? ` (${detalle})` : ""
-    lines.push(`Me interesa: ${servicio}${info}.`)
+    const info = detalle ? ` (${detalle})` : "";
+    lines.push(`Me interesa: ${servicio}${info}.`);
   }
-  lines.push("¿Tienen disponibilidad para hoy o mañana?")
-  return lines.join("\n")
+  lines.push("¿Tienen disponibilidad para hoy o mañana?");
+  return lines.join("\n");
 }
 
 export function getWhatsAppLink(phone: string, message: string) {
-  const encodedMessage = encodeURIComponent(message)
-  return `https://wa.me/${phone.replace(/\+/g, "")}?text=${encodedMessage}`
+  const encodedMessage = encodeURIComponent(message);
+  return `https://wa.me/${phone.replace(/\+/g, "")}?text=${encodedMessage}`;
 }

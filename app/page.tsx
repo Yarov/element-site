@@ -9,14 +9,17 @@ import { FAQ } from "@/components/faq"
 import { CTAFinal } from "@/components/cta-final"
 import { Footer } from "@/components/footer"
 import { WhatsAppFloat } from "@/components/whatsapp-float"
+import { MarketingSlot } from "@/components/marketing-runtime"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <Header />
-      <Hero />
+      <main className="min-h-screen">
+       <Header />
+       <Hero />
+       <MarketingSlot slot="home.banner" />
       <Benefits />
-      <Services />
+       <Services />
+       <MarketingSlot slot="home.promo" />
       <WhyChoose />
       <Locations />
       <Testimonials />

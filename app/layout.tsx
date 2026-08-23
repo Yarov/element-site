@@ -1,8 +1,11 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Playfair_Display, Inter } from "next/font/google"
-import Script from "next/script"
-import "./globals.css"
+import type React from "react";
+import type { Metadata } from "next";
+import { Playfair_Display, Inter } from "next/font/google";
+import Script from "next/script";
+import "./globals.css";
+import { MarketingVisitorTracker } from "@/components/marketing-runtime";
+import { SurveyDelivery } from "@/components/survey-delivery";
+import { Toaster } from "@/components/ui/sonner";
 import {
   SITE_URL,
   ORG_ID,
@@ -11,10 +14,13 @@ import {
   SPA_COYOACAN_ID,
   OPENING_HOURS,
   buildServiceArea,
-} from "@/lib/schema"
+} from "@/lib/schema";
 
-const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
-const _inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const _playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
+const _inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://elementspa.mx"),
@@ -51,7 +57,7 @@ export const metadata: Metadata = {
       "Descubre una experiencia sensorial única en ElementSpa. Masajes exclusivos para caballeros en Roma Norte y Coyoacán.",
     images: ["/dark-luxury-spa-massage-room-with-candles-ambient-.jpg"],
   },
-}
+};
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -83,13 +89,21 @@ const organizationJsonLd = {
       "@type": "HealthAndBeautyBusiness",
       "@id": SPA_ROMA_NORTE_ID,
       name: "ElementSpa Roma Norte",
-      image: "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
+      image:
+        "https://elementspa.mx/luxury-spa-interior-wood-stone-natural-elements-ma.jpg",
       url: "https://elementspa.mx/spa-para-hombres-roma-norte",
       description:
         "Spa exclusivo para hombres en Roma Norte, CDMX. Masajes sensoriales, relajantes, descontracturantes y tántricos para caballeros. Privacidad total y atención profesional.",
       telephone: "+52-56-4711-4561",
       serviceArea: buildServiceArea("romaNorte"),
-      areaServed: ["Roma Norte", "Roma Sur", "Condesa", "Juárez", "Del Valle", "Polanco"],
+      areaServed: [
+        "Roma Norte",
+        "Roma Sur",
+        "Condesa",
+        "Juárez",
+        "Del Valle",
+        "Polanco",
+      ],
       openingHoursSpecification: [OPENING_HOURS],
       priceRange: "$1,100 - $5,000 MXN",
       priceCurrency: "MXN",
@@ -112,7 +126,7 @@ const organizationJsonLd = {
       parentOrganization: { "@id": ORG_ID },
     },
   ],
-}
+};
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -123,12 +137,12 @@ const websiteJsonLd = {
   alternateName: "Element Spa CDMX",
   inLanguage: ["es-MX", "en"],
   publisher: { "@id": ORG_ID },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="es-MX">
@@ -144,14 +158,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         )}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
       </head>
-      <body className={`${_playfair.variable} ${_inter.variable} font-sans antialiased`}>
+      <body
+        className={`${_playfair.variable} ${_inter.variable} font-sans antialiased`}
+      >
+        <MarketingVisitorTracker />
+        <SurveyDelivery />
+        <Toaster richColors position="top-right" theme="light" />
         {process.env.NODE_ENV === "production" && (
           <noscript>
             <iframe
@@ -165,5 +186,5 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         {children}
       </body>
     </html>
-  )
+  );
 }

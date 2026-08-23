@@ -10,7 +10,9 @@ interface AuthConfiguration {
 
 export function getAuthConfiguration(): AuthConfiguration | null {
   const username = process.env.ADMIN_USERNAME?.trim().toLowerCase();
-  const passwordHash = process.env.ADMIN_PASSWORD_HASH?.trim();
+  const passwordHash = decodePasswordHash(
+    process.env.ADMIN_PASSWORD_HASH_BASE64?.trim(),
+  );
   const secret = process.env.AUTH_SECRET?.trim();
 
   if (
@@ -25,6 +27,16 @@ export function getAuthConfiguration(): AuthConfiguration | null {
   }
 
   return { username, passwordHash, secret };
+}
+
+function decodePasswordHash(value: string | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    return Buffer.from(value, "base64").toString("utf8");
+  } catch {
+    return null;
+  }
 }
 
 function isValidUsername(value: string): boolean {

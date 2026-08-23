@@ -11,24 +11,25 @@ const derivedKey = scryptSync(password, salt, 64, {
   maxmem: 32 * 1024 * 1024,
 });
 const passwordHash = `scrypt$16384$8$1$${salt.toString("base64url")}$${derivedKey.toString("base64url")}`;
+const passwordHashBase64 = Buffer.from(passwordHash, "utf8").toString("base64");
 
 afterEach(() => vi.unstubAllEnvs());
 
 describe("authentication configuration", () => {
   it("fails closed when a required credential is missing or invalid", () => {
     vi.stubEnv("ADMIN_USERNAME", "admin");
-    vi.stubEnv("ADMIN_PASSWORD_HASH", passwordHash);
+    vi.stubEnv("ADMIN_PASSWORD_HASH_BASE64", passwordHashBase64);
     vi.stubEnv("AUTH_SECRET", "");
     expect(getAuthConfiguration()).toBeNull();
 
     vi.stubEnv("AUTH_SECRET", "a".repeat(32));
-    vi.stubEnv("ADMIN_PASSWORD_HASH", "invalid");
+    vi.stubEnv("ADMIN_PASSWORD_HASH_BASE64", "aW52YWxpZA==");
     expect(getAuthConfiguration()).toBeNull();
   });
 
   it("normalizes a complete bootstrap administrator configuration", () => {
     vi.stubEnv("ADMIN_USERNAME", " Admin ");
-    vi.stubEnv("ADMIN_PASSWORD_HASH", passwordHash);
+    vi.stubEnv("ADMIN_PASSWORD_HASH_BASE64", passwordHashBase64);
     vi.stubEnv("AUTH_SECRET", "a".repeat(32));
 
     expect(getAuthConfiguration()).toEqual({

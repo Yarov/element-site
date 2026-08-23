@@ -12,29 +12,34 @@ interface AdminLoginFormProps {
 
 export function AdminLoginForm({ callbackUrl }: AdminLoginFormProps) {
   const router = useRouter();
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(false);
+    setError(null);
     setIsSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
-    const result = await signIn("credentials", {
-      username: formData.get("username"),
-      password: formData.get("password"),
-      redirect: false,
-    });
+    try {
+      const formData = new FormData(event.currentTarget);
+      const result = await signIn("credentials", {
+        username: formData.get("username"),
+        password: formData.get("password"),
+        redirect: false,
+      });
 
-    setIsSubmitting(false);
-    if (result?.error) {
-      setError(true);
-      return;
+      if (!result?.ok || result.error) {
+        setError("Usuario o contraseña incorrectos.");
+        return;
+      }
+
+      router.replace(callbackUrl);
+      router.refresh();
+    } catch {
+      setError("No fue posible iniciar sesión. Intenta de nuevo.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    router.replace(callbackUrl);
-    router.refresh();
   }
 
   return (
@@ -63,9 +68,7 @@ export function AdminLoginForm({ callbackUrl }: AdminLoginFormProps) {
           type="password"
         />
       </div>
-      {error && (
-        <p className="text-sm text-destructive">Invalid credentials.</p>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <Button className="w-full" disabled={isSubmitting} type="submit">
         {isSubmitting ? "Signing in..." : "Sign in"}
       </Button>

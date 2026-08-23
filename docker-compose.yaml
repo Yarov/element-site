@@ -9,7 +9,7 @@ services:
       TZ: America/Mexico_City
       DATABASE_URL: postgresql://elementspa@postgres:5432/elementspa
       ADMIN_USERNAME: ${ADMIN_USERNAME:?ADMIN_USERNAME is required}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH is required}
+      ADMIN_PASSWORD_HASH_BASE64: ${ADMIN_PASSWORD_HASH_BASE64:?ADMIN_PASSWORD_HASH_BASE64 is required}
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
       AUTH_TRUST_HOST: "true"
       META_PIXEL_ID: ${META_PIXEL_ID:-931479589299640}

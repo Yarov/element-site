@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { MapPin, MessageCircle, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
+import { MapPin, MessageCircle, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data";
 
 const sucursales = [
   {
@@ -19,22 +19,34 @@ const sucursales = [
     whatsapp: locations.coyoacan.whatsapp,
     hours: "Lun - Dom: 11:00 - 19:00",
   },
-]
+];
 
 export function Locations() {
-  const handleContactar = (whatsapp: string, sucursal: string) => {
-    const waUrl = getWhatsAppLink(whatsapp, `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`)
-    trackWhatsAppClick(sucursal, waUrl)
-  }
+  const handleContactar = (
+    whatsapp: string,
+    sucursal: string,
+    branchId: string,
+  ) => {
+    const waUrl = getWhatsAppLink(
+      whatsapp,
+      `Hola, me gustaría agendar una cita en la sucursal ${sucursal}.`,
+    );
+    trackWhatsAppClick(sucursal, waUrl, undefined, { branchId });
+  };
 
   return (
     <section id="sucursales" className="py-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="text-sm tracking-[0.3em] text-primary uppercase mb-4">Nuestras Sucursales</p>
-          <h2 className="text-4xl md:text-5xl font-serif leading-tight mb-4">Encuéntranos en CDMX</h2>
+          <p className="text-sm tracking-[0.3em] text-primary uppercase mb-4">
+            Nuestras Sucursales
+          </p>
+          <h2 className="text-4xl md:text-5xl font-serif leading-tight mb-4">
+            Encuéntranos en CDMX
+          </h2>
           <p className="text-muted-foreground">
-            Dos ubicaciones exclusivas diseñadas para tu comodidad y discreción total.
+            Dos ubicaciones exclusivas diseñadas para tu comodidad y discreción
+            total.
           </p>
         </div>
 
@@ -60,7 +72,9 @@ export function Locations() {
               </div>
 
               <Button
-                onClick={() => handleContactar(sucursal.whatsapp, sucursal.name)}
+                onClick={() =>
+                  handleContactar(sucursal.whatsapp, sucursal.name, sucursal.id)
+                }
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-6 gap-2"
               >
                 <MessageCircle className="h-5 w-5" />
@@ -71,5 +85,5 @@ export function Locations() {
         </div>
       </div>
     </section>
-  )
+  );
 }

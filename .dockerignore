@@ -1,0 +1,19 @@
+# Local dependencies and build output are recreated by Nixpacks.
+node_modules
+.next
+out
+build
+
+# Never include local credentials in the Coolify build context.
+.env
+.env.*
+!.env.example
+
+# Repository and local tooling are not required at runtime.
+.git
+.agents
+.claude
+.DS_Store
+*.log
+*.tsbuildinfo
+reports

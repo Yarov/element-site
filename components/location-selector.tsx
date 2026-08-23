@@ -1,17 +1,22 @@
-"use client"
+"use client";
 
-import { X, MapPin, MessageCircle } from "lucide-react"
-import { locations, getWhatsAppLink, trackWhatsAppClick } from "@/lib/data"
+import { X, MapPin, MessageCircle } from "lucide-react";
+import {
+  getServiceCatalogId,
+  getWhatsAppLink,
+  locations,
+  trackWhatsAppClick,
+} from "@/lib/data";
 
 interface LocationSelectorProps {
-  isOpen: boolean
-  onClose: () => void
-  message: string
-  servicio?: string
+  isOpen: boolean;
+  onClose: () => void;
+  message: string;
+  servicio?: string;
   /** Textos del modal. Por defecto en español; se sobreescriben en páginas /en. */
-  title?: string
-  subtitle?: string
-  note?: string
+  title?: string;
+  subtitle?: string;
+  note?: string;
 }
 
 export function LocationSelector({
@@ -23,19 +28,29 @@ export function LocationSelector({
   subtitle = "Elige la ubicación más conveniente para ti",
   note = "Serás redirigido a WhatsApp para continuar",
 }: LocationSelectorProps) {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const handleSelectLocation = (whatsapp: string, locationName: string) => {
-    const finalMessage = message.replace("{sucursal}", locationName)
-    const waUrl = getWhatsAppLink(whatsapp, finalMessage)
-    trackWhatsAppClick(locationName, waUrl, servicio)
-    onClose()
-  }
+  const handleSelectLocation = (
+    whatsapp: string,
+    locationId: string,
+    locationName: string,
+  ) => {
+    const finalMessage = message.replace("{sucursal}", locationName);
+    const waUrl = getWhatsAppLink(whatsapp, finalMessage);
+    trackWhatsAppClick(locationName, waUrl, servicio, {
+      branchId: locationId,
+      serviceId: getServiceCatalogId(servicio),
+    });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div className="relative bg-card border border-border rounded-lg shadow-2xl w-full max-w-md mx-4 p-6">
@@ -58,7 +73,9 @@ export function LocationSelector({
           {Object.entries(locations).map(([key, location]) => (
             <button
               key={key}
-              onClick={() => handleSelectLocation(location.whatsapp, location.name)}
+              onClick={() =>
+                handleSelectLocation(location.whatsapp, key, location.name)
+              }
               className="w-full p-4 bg-secondary/50 hover:bg-secondary border border-border hover:border-primary/50 rounded-lg transition-all group flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
@@ -66,7 +83,9 @@ export function LocationSelector({
                   <MapPin className="h-5 w-5 text-primary" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium group-hover:text-primary transition-colors">{location.name}</p>
+                  <p className="font-medium group-hover:text-primary transition-colors">
+                    {location.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">CDMX</p>
                 </div>
               </div>
@@ -79,5 +98,5 @@ export function LocationSelector({
         <p className="text-xs text-center text-muted-foreground mt-6">{note}</p>
       </div>
     </div>
-  )
+  );
 }

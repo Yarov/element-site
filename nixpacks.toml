@@ -6,12 +6,13 @@ NODE_ENV = "production"
 nixPkgs = ["nodejs_22"]
 
 [phases.install]
-# Fuerza npm porque existe package-lock.json y el pnpm-lock.yaml parece incompleto.
-cmds = ["npm ci"]
+# Drizzle Kit corre al iniciar el release, por lo que también debe existir en runtime.
+cmds = ["npm ci --include=dev"]
 
 [phases.build]
 cmds = ["npm run build"]
 
 [start]
-# Coolify/Nixpacks provee PORT; Next debe escuchar en ese puerto.
-cmd = "npm run start -- -p $PORT"
+# La app no abre el puerto si la migración falla. Configura una sola réplica en
+# Coolify mientras no se introduzca un lock de migración distribuido.
+cmd = "npm run db:migrate && npm run start -- -p $PORT"

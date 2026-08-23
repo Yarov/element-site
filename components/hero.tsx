@@ -1,16 +1,34 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, CheckCircle } from "lucide-react"
 import { LocationSelector } from "@/components/location-selector"
 import { buildWhatsAppMessage } from "@/lib/data"
+import type { MarketingComponent } from "@/lib/marketing/model"
+import { getActiveComponent, trackMarketingEvent, type ActiveComponent } from "@/lib/marketing/client"
 
 export function Hero() {
   const [showLocationSelector, setShowLocationSelector] = useState(false)
+  const [campaign, setCampaign] = useState<MarketingComponent | null>(null)
+  const [activeCampaign, setActiveCampaign] = useState<ActiveComponent | null>(null)
+
+  useEffect(() => {
+    void getActiveComponent("home.hero").then((active) => {
+      if (!active) return
+      setCampaign(active.component)
+      setActiveCampaign(active)
+      trackMarketingEvent(active, "impression")
+    })
+  }, [])
 
   const handleReservar = () => {
+    if (campaign?.ctaHref) {
+      if (activeCampaign) trackMarketingEvent(activeCampaign, "click")
+      window.location.assign(campaign.ctaHref)
+      return
+    }
     setShowLocationSelector(true)
   }
 
@@ -20,7 +38,7 @@ export function Hero() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/dark-luxury-spa-massage-room-with-candles-ambient-.jpg"
+            src={campaign?.imageUrl || "/dark-luxury-spa-massage-room-with-candles-ambient-.jpg"}
             alt="ElementSpa — Spa exclusivo para hombres en CDMX con ambiente de lujo"
             fill
             className="object-cover"
@@ -32,16 +50,14 @@ export function Hero() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 w-full">
           <div className="max-w-2xl">
             <p className="text-sm tracking-[0.3em] text-primary uppercase mb-4">
-              Experiencias exclusivas para caballeros
+              {campaign ? "Experiencia personalizada" : "Experiencias exclusivas para caballeros"}
             </p>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-tight text-balance mb-6">
-              Spa Exclusivo para Hombres en CDMX
+              {campaign?.title ?? "Spa Exclusivo para Hombres en CDMX"}
               <span className="sr-only"> — Masajes Sensuales y Relajantes en Roma Norte y Coyoacán</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-md leading-relaxed mb-6">
-              Déjate llevar por una experiencia donde el placer, la relajación y la conexión con tu cuerpo se
-              convierten en un solo momento. Terapeutas profesionales, ambiente discreto y atención
-              personalizada en cada visita.
+              {campaign?.body ?? "Déjate llevar por una experiencia donde el placer, la relajación y la conexión con tu cuerpo se convierten en un solo momento. Terapeutas profesionales, ambiente discreto y atención personalizada en cada visita."}
             </p>
 
             {/* Microbeneficios */}
@@ -67,7 +83,7 @@ export function Hero() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-base gap-2"
               >
                 <MessageCircle className="h-5 w-5" />
-                Reservar por WhatsApp
+                {campaign?.ctaLabel ?? "Reservar por WhatsApp"}
               </Button>
               <Button
                 size="lg"

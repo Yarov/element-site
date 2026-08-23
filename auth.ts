@@ -34,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const configuration = getAuthConfiguration();
         if (!configuration) {
           console.error(
-            "Admin authentication is not configured. Set ADMIN_USERNAME, ADMIN_PASSWORD_HASH, and AUTH_SECRET.",
+            "Admin authentication is not configured. Set ADMIN_USERNAME, ADMIN_PASSWORD_HASH_BASE64, and AUTH_SECRET.",
           );
           return null;
         }

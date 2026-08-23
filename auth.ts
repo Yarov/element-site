@@ -32,6 +32,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         const configuration = getAuthConfiguration();
+        if (!configuration) {
+          console.error(
+            "Admin authentication is not configured. Set ADMIN_USERNAME, ADMIN_PASSWORD_HASH, and AUTH_SECRET.",
+          );
+          return null;
+        }
         const username =
           typeof credentials?.username === "string"
             ? credentials.username.trim().toLowerCase()
@@ -39,7 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password =
           typeof credentials?.password === "string" ? credentials.password : "";
 
-        if (!configuration || username !== configuration.username || !password)
+        if (username !== configuration.username || !password)
           return null;
         if (!(await verifyPassword(password, configuration.passwordHash)))
           return null;

@@ -28,6 +28,8 @@ export function SurveyDelivery() {
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [showRequiredMessage, setShowRequiredMessage] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (window.location.pathname.startsWith("/admin")) return;
@@ -99,39 +101,64 @@ export function SurveyDelivery() {
 
   const activeSurvey = active;
   const survey = activeSurvey.survey;
-  const fields = (survey?.config.fields as SurveyField[] | undefined) ?? [];
-  const answeredCount = fields.filter((field) => {
+  const fields = ((survey?.config.fields as SurveyField[] | undefined) ?? []).filter(
+    (field) => field.kind !== "cta",
+  );
+  const field = fields[step];
+  const isFinalStep = fields.length === 0 || step === fields.length - 1;
+  const progress = fields.length ? ((step + 1) / fields.length) * 100 : 0;
+
+  function hasAnswer(field: SurveyField) {
     const answer = answers[field.id];
     return answer !== undefined && answer !== "";
-  }).length;
-  const progress = fields.length ? (answeredCount / fields.length) * 100 : 0;
+  }
+
+  function validateCurrentStep() {
+    if (field?.required && !hasAnswer(field)) {
+      setShowRequiredMessage(true);
+      return false;
+    }
+    setShowRequiredMessage(false);
+    return true;
+  }
+
+  function goNext() {
+    if (!validateCurrentStep()) return;
+    if (!isFinalStep) setStep((current) => current + 1);
+  }
+
+  function answerAndAdvance(value: string | number) {
+    if (!field) return;
+    setAnswers((current) => ({ ...current, [field.id]: value }));
+    setShowRequiredMessage(false);
+    if (!isFinalStep) setStep((current) => current + 1);
+  }
 
   async function submit() {
-    const required = fields.filter((field) => field.required);
-    if (
-      required.some(
-        (field) => answers[field.id] === undefined || answers[field.id] === "",
-      )
-    ) {
-      setShowRequiredMessage(true);
-      return;
-    }
+    if (!validateCurrentStep() || isSubmitting) return;
 
     if (preview) return setSubmitted(true);
 
     setSubmissionError(null);
+    setIsSubmitting(true);
 
-    const response = await fetch(`/api/surveys/${activeSurvey.id}/responses`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ answers }),
-    });
-    if (response.ok) {
-      recordFlowCompleted(activeSurvey.id);
-      setSubmitted(true);
-      return;
+    try {
+      const response = await fetch(`/api/surveys/${activeSurvey.id}/responses`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ answers }),
+      });
+      if (response.ok) {
+        recordFlowCompleted(activeSurvey.id);
+        setSubmitted(true);
+        return;
+      }
+      setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
+    } catch {
+      setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
+    } finally {
+      setIsSubmitting(false);
     }
-    setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
   }
 
   function dismiss() {
@@ -215,9 +242,7 @@ export function SurveyDelivery() {
 
               <div className="mt-6 h-px bg-border" />
               <div className="mt-4 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
-                <span>
-                  {answeredCount} de {fields.length} respondidas
-                </span>
+                <span>Pregunta {fields.length ? step + 1 : 0} de {fields.length}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="mt-2 h-1 overflow-hidden rounded-full bg-secondary">
@@ -227,87 +252,66 @@ export function SurveyDelivery() {
                 />
               </div>
 
-              <div className="mt-7 space-y-7">
-                {fields.map((field, index) => (
-                  <fieldset key={field.id}>
-                    <legend className="flex w-full items-start gap-3 text-base font-medium leading-6 text-foreground">
-                      <span className="mt-0.5 text-xs font-semibold text-primary">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span>
-                        {field.label}
-                        {field.required && (
-                          <span className="ml-1 text-primary">*</span>
-                        )}
-                      </span>
-                    </legend>
-                    {field.kind === "rating" ? (
-                      <div className="mt-4 grid grid-cols-5 gap-2">
-                        {[1, 2, 3, 4, 5].map((value) => (
+              {field && (
+                <fieldset className="mt-7">
+                  <legend className="flex w-full items-start gap-3 text-base font-medium leading-6 text-foreground">
+                    <span className="mt-0.5 text-xs font-semibold text-primary">
+                      {String(step + 1).padStart(2, "0")}
+                    </span>
+                    <span>
+                      {field.label}
+                      {field.required && <span className="ml-1 text-primary">*</span>}
+                    </span>
+                  </legend>
+                  {field.kind === "rating" ? (
+                    <div className="mt-4 grid grid-cols-5 gap-2">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => answerAndAdvance(value)}
+                          aria-pressed={answers[field.id] === value}
+                          className={`flex h-13 flex-col items-center justify-center rounded-lg border text-base font-medium transition ${answers[field.id] === value ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15" : "border-border bg-secondary/40 text-foreground hover:border-primary/60 hover:bg-primary/10"}`}
+                        >
+                          {value}
+                        </button>
+                      ))}
+                    </div>
+                  ) : field.kind === "singleChoice" ? (
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {(field.options ?? []).map((option) => {
+                        const selected = answers[field.id] === option;
+                        return (
                           <button
-                            key={value}
+                            key={option}
                             type="button"
-                            onClick={() => {
-                              setAnswers((current) => ({
-                                ...current,
-                                [field.id]: value,
-                              }));
-                              setShowRequiredMessage(false);
-                            }}
-                            aria-pressed={answers[field.id] === value}
-                            className={`flex h-13 flex-col items-center justify-center rounded-lg border text-base font-medium transition ${answers[field.id] === value ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15" : "border-border bg-secondary/40 text-foreground hover:border-primary/60 hover:bg-primary/10"}`}
+                            onClick={() => answerAndAdvance(option)}
+                            aria-pressed={selected}
+                            className={`flex min-h-12 items-center justify-between rounded-lg border px-4 text-left text-sm transition ${selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-secondary/30 text-muted-foreground hover:border-primary/60 hover:text-foreground"}`}
                           >
-                            {value}
+                            {option}
+                            <span className={`size-4 rounded-full border ${selected ? "border-primary bg-primary" : "border-muted-foreground"}`} />
                           </button>
-                        ))}
-                      </div>
-                    ) : field.kind === "singleChoice" ? (
-                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                        {(field.options ?? []).map((option) => {
-                          const selected = answers[field.id] === option;
-                          return (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => {
-                                setAnswers((current) => ({
-                                  ...current,
-                                  [field.id]: option,
-                                }));
-                                setShowRequiredMessage(false);
-                              }}
-                              aria-pressed={selected}
-                              className={`flex min-h-12 items-center justify-between rounded-lg border px-4 text-left text-sm transition ${selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-secondary/30 text-muted-foreground hover:border-primary/60 hover:text-foreground"}`}
-                            >
-                              {option}
-                              <span
-                                className={`size-4 rounded-full border ${selected ? "border-primary bg-primary" : "border-muted-foreground"}`}
-                              />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <textarea
-                        value={String(answers[field.id] ?? "")}
-                        onChange={(event) => {
-                          setAnswers((current) => ({
-                            ...current,
-                            [field.id]: event.target.value,
-                          }));
-                          setShowRequiredMessage(false);
-                        }}
-                        placeholder="Comparte tu respuesta..."
-                        className="mt-4 min-h-28 w-full resize-none rounded-lg border border-border bg-secondary/30 p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-                      />
-                    )}
-                  </fieldset>
-                ))}
-              </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <textarea
+                      value={String(answers[field.id] ?? "")}
+                      onChange={(event) => {
+                        setAnswers((current) => ({ ...current, [field.id]: event.target.value }));
+                        setShowRequiredMessage(false);
+                      }}
+                      placeholder="Comparte tu respuesta..."
+                      className="mt-4 min-h-28 w-full resize-none rounded-lg border border-border bg-secondary/30 p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                    />
+                  )}
+                </fieldset>
+              )}
 
               {showRequiredMessage && (
-                <p className="mt-5 text-sm text-primary">
-                  Completa las preguntas marcadas con * para continuar.
+                <p className="mt-5 text-sm text-primary" role="alert">
+                  Esta pregunta es obligatoria para continuar.
                 </p>
               )}
               {submissionError && (
@@ -315,16 +319,33 @@ export function SurveyDelivery() {
                   {submissionError}
                 </p>
               )}
-              <div className="mt-8 flex items-center justify-between border-t border-border pt-5">
+              <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
                 <p className="text-xs text-muted-foreground">
                   Tu respuesta es confidencial.
                 </p>
-                <button
-                  type="submit"
-                  className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.98]"
-                >
-                  Enviar respuesta
-                </button>
+                <div className="flex items-center gap-2">
+                  {step > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowRequiredMessage(false);
+                        setStep((current) => current - 1);
+                      }}
+                      disabled={isSubmitting}
+                      className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary/60 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Anterior
+                    </button>
+                  )}
+                  <button
+                    type={isFinalStep ? "submit" : "button"}
+                    onClick={isFinalStep ? undefined : goNext}
+                    disabled={isSubmitting}
+                    className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isFinalStep ? (isSubmitting ? "Enviando..." : "Enviar respuesta") : "Siguiente"}
+                  </button>
+                </div>
               </div>
             </form>
           )}

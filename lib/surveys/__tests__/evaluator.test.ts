@@ -73,6 +73,85 @@ describe("survey flow evaluator", () => {
     ).toBe(true);
   });
 
+  it("matches any catalog page path and gives it precedence over a legacy path", () => {
+    const flow = {
+      ...seedFlow,
+      nodes: [
+        {
+          ...seedFlow.nodes[0],
+          config: { pagePath: "/legacy", pagePaths: ["/", "/blog"] },
+        },
+        ...seedFlow.nodes.slice(1),
+      ],
+    } as SurveyFlow;
+
+    expect(evaluateFlow(flow, { visitCount: 3, pathname: "/" }).matched).toBe(
+      true,
+    );
+    expect(
+      evaluateFlow(flow, { visitCount: 3, pathname: "/blog" }).matched,
+    ).toBe(true);
+    expect(
+      evaluateFlow(flow, { visitCount: 3, pathname: "/legacy" }).matched,
+    ).toBe(false);
+  });
+
+  it("does not restrict a trigger when it has no page target", () => {
+    const flow = {
+      ...seedFlow,
+      nodes: [
+        {
+          ...seedFlow.nodes[0],
+          config: { visitCount: 3 },
+        },
+        ...seedFlow.nodes.slice(1),
+      ],
+    } as SurveyFlow;
+
+    expect(
+      evaluateFlow(flow, { visitCount: 3, pathname: "/cualquier-ruta" })
+        .matched,
+    ).toBe(true);
+  });
+
+  it("matches every page with explicit all targeting", () => {
+    const flow = {
+      ...seedFlow,
+      nodes: [
+        {
+          ...seedFlow.nodes[0],
+          config: { visitCount: 3, targetMode: "all" },
+        },
+        ...seedFlow.nodes.slice(1),
+      ],
+    } as SurveyFlow;
+
+    expect(
+      evaluateFlow(flow, { visitCount: 3, pathname: "/cualquier-ruta" })
+        .matched,
+    ).toBe(true);
+  });
+
+  it("restricts explicit selected targeting to its public paths", () => {
+    const flow = {
+      ...seedFlow,
+      nodes: [
+        {
+          ...seedFlow.nodes[0],
+          config: { targetMode: "selected", pagePaths: ["/", "/blog"] },
+        },
+        ...seedFlow.nodes.slice(1),
+      ],
+    } as SurveyFlow;
+
+    expect(evaluateFlow(flow, { visitCount: 3, pathname: "/" }).matched).toBe(
+      true,
+    );
+    expect(
+      evaluateFlow(flow, { visitCount: 3, pathname: "/reservar" }).matched,
+    ).toBe(false);
+  });
+
   it("follows explicit matching and fallback condition edges with diagnostics", () => {
     const matching = evaluateFlow(conditionalFlow, {
       visitCount: 1,
@@ -168,11 +247,13 @@ describe("survey flow evaluator", () => {
         { visitCount: 3 },
       ).errors,
     ).toHaveLength(1);
+    const gate = {
+      ...conditionalFlow,
+      edges: conditionalFlow.edges.filter((edge) => edge.outcome !== "else"),
+    };
+    expect(validateFlow(gate).success).toBe(true);
     expect(
-      validateFlow({
-        ...conditionalFlow,
-        edges: conditionalFlow.edges.filter((edge) => edge.outcome !== "else"),
-      }).success,
+      evaluateFlow(gate, { visitCount: 3, pathname: "/" }).matched,
     ).toBe(false);
     expect(
       validateFlow({

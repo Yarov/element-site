@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PUBLIC_ROUTE_PATHS } from "@/lib/public-routes";
 import type { SurveyField, SurveyFlow } from "./model";
 
 const fieldSchema = z.object({
@@ -9,12 +10,37 @@ const fieldSchema = z.object({
   options: z.array(z.string().trim().min(1)).min(2).optional(),
 });
 
-const triggerConfigSchema = z
+const publicPagePathsSchema = z
+  .array(z.enum(PUBLIC_ROUTE_PATHS as [string, ...string[]]))
+  .min(1)
+  .refine((paths) => new Set(paths).size === paths.length, {
+    message: "Las páginas objetivo no pueden repetirse",
+  });
+
+const legacyTriggerConfigSchema = z
   .object({
     visitCount: z.number().int().min(0).optional(),
     pagePath: z.string().min(1).optional(),
+    pagePaths: publicPagePathsSchema.optional(),
   })
   .strict();
+
+const triggerConfigSchema = z.union([
+  legacyTriggerConfigSchema,
+  z
+    .object({
+      visitCount: z.number().int().min(0).optional(),
+      targetMode: z.literal("all"),
+    })
+    .strict(),
+  z
+    .object({
+      visitCount: z.number().int().min(0).optional(),
+      targetMode: z.literal("selected"),
+      pagePaths: publicPagePathsSchema,
+    })
+    .strict(),
+]);
 
 const conditionConfigSchema = z.discriminatedUnion("kind", [
   z
@@ -308,8 +334,17 @@ function validateGraph(flow: SurveyFlow) {
   for (const node of flow.nodes) {
     const outgoing = flow.edges.filter((edge) => edge.from === node.id);
     if (node.type === "condition") {
-      if (outgoing.length !== 2 || !hasOutcomes(outgoing, ["match", "else"]))
-        return `Condition ${node.id} requires one match and one else edge`;
+      const outcomes = outgoing.map((edge) => edge.outcome);
+      const hasOnlyConditionalOutcomes = outcomes.every(
+        (outcome) => outcome === "match" || outcome === "else",
+      );
+      if (
+        outgoing.length < 1 ||
+        outgoing.length > 2 ||
+        !hasOnlyConditionalOutcomes ||
+        new Set(outcomes).size !== outcomes.length
+      )
+        return `Condition ${node.id} requires one or two distinct conditional edges`;
       continue;
     }
     if (node.type === "action" && outgoing.length !== 0)
@@ -370,12 +405,4 @@ function validateGraph(flow: SurveyFlow) {
   )
     return "Flow must have a reachable terminal action";
   return undefined;
-}
-
-function hasOutcomes(edges: SurveyFlow["edges"], outcomes: string[]) {
-  const actual = edges.map((edge) => edge.outcome).sort();
-  return (
-    actual.length === outcomes.length &&
-    actual.every((outcome, index) => outcome === outcomes.sort()[index])
-  );
 }

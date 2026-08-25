@@ -35,9 +35,20 @@ export type SurveyField = {
   options?: string[];
 };
 
+export const TRIGGER_TARGET_MODES = {
+  ALL: "all",
+  SELECTED: "selected",
+} as const;
+
+export type TriggerTargetMode =
+  (typeof TRIGGER_TARGET_MODES)[keyof typeof TRIGGER_TARGET_MODES];
+
 export type TriggerConfig = {
   visitCount?: number;
+  // Omitted for stored flows that predate explicit route targeting.
+  targetMode?: TriggerTargetMode;
   pagePath?: string;
+  pagePaths?: string[];
 };
 
 export type VisitCountCondition = {

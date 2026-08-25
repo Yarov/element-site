@@ -46,7 +46,21 @@ export function evaluateFlow(
     reasons.push("trigger:visitCount:fail");
     return { matched: false, path, reasons, errors: [] };
   }
-  if (triggerConfig.pagePath && signals.pathname !== triggerConfig.pagePath) {
+  if (triggerConfig.targetMode === "selected") {
+    if (!triggerConfig.pagePaths?.includes(signals.pathname)) {
+      reasons.push("trigger:pagePaths:fail");
+      return { matched: false, path, reasons, errors: [] };
+    }
+  } else if (triggerConfig.targetMode !== "all" && triggerConfig.pagePaths) {
+    if (!triggerConfig.pagePaths.includes(signals.pathname)) {
+      reasons.push("trigger:pagePaths:fail");
+      return { matched: false, path, reasons, errors: [] };
+    }
+  } else if (
+    triggerConfig.targetMode !== "all" &&
+    triggerConfig.pagePath &&
+    signals.pathname !== triggerConfig.pagePath
+  ) {
     reasons.push("trigger:pagePath:fail");
     return { matched: false, path, reasons, errors: [] };
   }

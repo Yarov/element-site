@@ -15,14 +15,24 @@ import {
   type Node,
   type NodeProps,
   type NodeTypes,
-  useEdgesState,
-  useNodesState,
 } from "@xyflow/react";
-import { FilePlus2, Plus, Save, Send, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  CircleAlert,
+  FilePlus2,
+  Pencil,
+  Plus,
+  Save,
+  Send,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import type {
   ConditionConfig,
   SurveyField,
   SurveyFlow,
+  TriggerConfig,
   VisitorSignals,
   WorkflowNode,
 } from "@/lib/surveys/model";
@@ -35,6 +45,21 @@ import { validateFlow } from "@/lib/surveys/schema";
 import type { SurveyAnalytics } from "@/lib/surveys/analytics";
 import { demoSurveyAnalytics } from "@/lib/surveys/analytics-demo";
 import { locations, services } from "@/lib/data";
+import { PUBLIC_ROUTES } from "@/lib/public-routes";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type StoredFlow = {
   id: string;
@@ -44,14 +69,39 @@ type StoredFlow = {
 };
 type NodeKind = "trigger" | "condition" | "survey" | "action";
 type WorkflowCanvasNode = Node<{ node: WorkflowNode }, "workflow">;
-type StudioTab = "canvas" | "data";
+const STUDIO_TABS = {
+  BUILD: "build",
+  AUDIENCE: "audience",
+  SIMULATE: "simulate",
+  REVIEW: "review",
+  DATA: "data",
+} as const;
 
-const meta: Record<NodeKind, { name: string; color: string }> = {
-  trigger: { name: "Trigger", color: "border-violet-500" },
-  condition: { name: "Condición", color: "border-amber-500" },
-  survey: { name: "Encuesta", color: "border-pink-500" },
-  action: { name: "Final", color: "border-emerald-500" },
-};
+type StudioTab = (typeof STUDIO_TABS)[keyof typeof STUDIO_TABS];
+
+const meta: Record<NodeKind, { name: string; color: string; purpose: string }> =
+  {
+    trigger: {
+      name: "Inicio",
+      color: "border-violet-500",
+      purpose: "Define cuándo puede comenzar la encuesta.",
+    },
+    condition: {
+      name: "Condición",
+      color: "border-amber-500",
+      purpose: "Divide el recorrido según una señal del visitante.",
+    },
+    survey: {
+      name: "Encuesta",
+      color: "border-pink-500",
+      purpose: "Recopila respuestas de la persona visitante.",
+    },
+    action: {
+      name: "Final",
+      color: "border-emerald-500",
+      purpose: "Cierra el recorrido con un mensaje final.",
+    },
+  };
 
 function WorkflowNodeCard({ data, selected }: NodeProps<WorkflowCanvasNode>) {
   const node = data.node;
@@ -66,7 +116,9 @@ function WorkflowNodeCard({ data, selected }: NodeProps<WorkflowCanvasNode>) {
 
   return (
     <div
-      className={`relative min-w-52 rounded-xl border-l-4 bg-white shadow-sm ${meta[node.type as NodeKind]?.color ?? "border-slate-400"} ${selected ? "ring-2 ring-slate-900/15" : ""}`}
+      aria-label={`${meta[node.type as NodeKind]?.name ?? "Paso"}: ${node.label}`}
+      aria-current={selected ? "step" : undefined}
+      className={`relative min-w-52 rounded-xl border-l-4 bg-white shadow-sm transition-shadow ${meta[node.type as NodeKind]?.color ?? "border-slate-400"} ${selected ? "bg-slate-50 ring-2 ring-slate-900 ring-offset-2" : ""}`}
     >
       <Handle
         type="target"
@@ -79,11 +131,12 @@ function WorkflowNodeCard({ data, selected }: NodeProps<WorkflowCanvasNode>) {
         </p>
         <p className="mt-2 text-sm font-semibold">{node.label}</p>
         <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
+        {selected && <span className="sr-only">Paso seleccionado</span>}
       </div>
       {node.type === "condition" ? (
         <div className="absolute -right-20 top-3 grid gap-5 text-[10px] font-semibold text-slate-500">
-          <span>Match</span>
-          <span>Otherwise</span>
+          <span>Cumple</span>
+          <span>No cumple</span>
           <Handle
             id="match"
             type="source"
@@ -99,14 +152,14 @@ function WorkflowNodeCard({ data, selected }: NodeProps<WorkflowCanvasNode>) {
             className="!size-3 !border-2 !border-white !bg-amber-500"
           />
         </div>
-      ) : (
+      ) : node.type !== "action" ? (
         <Handle
           id="next"
           type="source"
           position={Position.Right}
           className="!size-3 !border-2 !border-white !bg-slate-500"
         />
-      )}
+      ) : null}
     </div>
   );
 }
@@ -126,15 +179,15 @@ function toNodes(flow: SurveyFlow): WorkflowCanvasNode[] {
 
 function toEdges(flow: SurveyFlow): Edge[] {
   return flow.edges.map((edge) => ({
-    id: `${edge.from}-${edge.to}`,
+    id: `${edge.from}-${edge.outcome ?? "next"}-${edge.to}`,
     source: edge.from,
     target: edge.to,
     sourceHandle: edge.outcome ?? "next",
     label:
       edge.outcome === "match"
-        ? "Match"
+        ? "Cumple"
         : edge.outcome === "else"
-          ? "Otherwise"
+          ? "No cumple"
           : undefined,
     animated: true,
     style: { stroke: "#64748b", strokeWidth: 2 },
@@ -198,7 +251,9 @@ export function SurveyStudioApp() {
   const [serverId, setServerId] = useState<string | null>(null);
   const [status, setStatus] = useState("Cargando encuestas...");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<StudioTab>("canvas");
+  const [activeTab, setActiveTab] = useState<StudioTab>(STUDIO_TABS.BUILD);
+  const [stepEditorOpen, setStepEditorOpen] = useState(false);
+  const [routePickerOpen, setRoutePickerOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<"node" | "survey" | null>(
     null,
   );
@@ -207,10 +262,6 @@ export function SurveyStudioApp() {
     pathname: "/",
   });
   const [previewNow, setPreviewNow] = useState(() => Date.now());
-  const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowCanvasNode>(
-    [],
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   useEffect(() => {
     let active = true;
@@ -257,21 +308,17 @@ export function SurveyStudioApp() {
     };
   }, [serverId]);
 
-  useEffect(() => {
-    if (flow) {
-      setNodes(toNodes(flow));
-      setEdges(toEdges(flow));
-    }
-  }, [flow, setEdges, setNodes]);
-
   const selected = flow?.nodes.find((node) => node.id === selectedId);
   const currentStatus = flows.find((item) => item.id === serverId)?.status;
   const result = flow ? evaluateFlow(flow, previewSignals, previewNow) : null;
+  const nodes = flow ? toNodes(flow) : [];
+  const edges = flow ? toEdges(flow) : [];
 
   function open(item: StoredFlow) {
     setFlow(item.graph);
     setServerId(item.id);
     setSelectedId(item.graph.nodes[0]?.id ?? null);
+    setStepEditorOpen(false);
     setStatus(item.status === "published" ? "Publicada" : "Borrador guardado");
   }
   function mutate(updater: (current: SurveyFlow) => SurveyFlow) {
@@ -309,11 +356,13 @@ export function SurveyStudioApp() {
 
   function addNode(type: NodeKind) {
     if (!flow) return;
+    if (type === "trigger") {
+      setActiveTab(STUDIO_TABS.AUDIENCE);
+      return;
+    }
     const id = crypto.randomUUID();
     const config =
-      type === "trigger"
-        ? { visitCount: 3, pagePath: "/" }
-        : type === "condition"
+      type === "condition"
           ? defaultCondition()
           : type === "survey"
             ? { fields: [] }
@@ -322,9 +371,7 @@ export function SurveyStudioApp() {
       id,
       type,
       label:
-        type === "trigger"
-          ? "Visitante recurrente"
-          : type === "condition"
+        type === "condition"
             ? "Condición"
             : type === "survey"
               ? "Nueva encuesta"
@@ -347,15 +394,25 @@ export function SurveyStudioApp() {
             ? "else"
             : null
         : "next";
-    if (!outcome) return setStatus("Usa Match u Otherwise para la condición");
+    if (!outcome)
+      return setStatus("Usa Cumple o No cumple para conectar la condición");
+    connectNodes(connection.source, connection.target, outcome);
+  }
+
+  function connectNodes(
+    sourceId: string,
+    targetId: string,
+    outcome: "next" | "match" | "else",
+  ) {
+    if (sourceId === targetId) return;
     mutate((current) => ({
       ...current,
       edges: [
         ...current.edges.filter(
           (edge) =>
-            !(edge.from === connection.source && edge.outcome === outcome),
+            !(edge.from === sourceId && edge.outcome === outcome),
         ),
-        { from: connection.source, to: connection.target, outcome },
+        { from: sourceId, to: targetId, outcome },
       ],
     }));
   }
@@ -365,6 +422,10 @@ export function SurveyStudioApp() {
   }
   function confirmRemoveNode() {
     if (!selectedId) return;
+    if (flow?.nodes.find((node) => node.id === selectedId)?.type === "trigger") {
+      setPendingDelete(null);
+      return toast.error("El inicio define la distribución y no se puede eliminar.");
+    }
     mutate((current) => ({
       ...current,
       nodes: current.nodes.filter((node) => node.id !== selectedId),
@@ -405,10 +466,12 @@ export function SurveyStudioApp() {
     if (!flow || !serverId) return;
     if (nextStatus === "published") {
       const validated = validateFlow(flow);
-      if (!validated.success)
+      if (!validated.success) {
+        toast.error(describeValidationError(validated.error.issues[0]?.message ?? ""));
         return setStatus(
-          validated.error.issues[0]?.message ?? "Flujo inválido",
+          "Corrige Inicio, preguntas o conexiones antes de publicar",
         );
+      }
     }
     setStatus(nextStatus === "published" ? "Publicando..." : "Guardando...");
     const response = await fetch(`/api/admin/surveys/${serverId}`, {
@@ -462,17 +525,29 @@ export function SurveyStudioApp() {
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
-      <header className="flex min-h-16 flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-5 py-3">
-        <div className="mr-auto shrink-0">
-          <p className="text-xs text-slate-400">Survey Studio</p>
-          <h1 className="text-sm font-semibold">
-            Encuestas por automatización
-          </h1>
-        </div>
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-          <span className="hidden text-xs text-slate-500 2xl:block">
-            {status}
-          </span>
+       <header className="flex min-h-16 flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-5 py-3">
+         <div className="mr-auto shrink-0">
+           <p className="text-xs text-slate-400">Survey Studio</p>
+           {flow ? (
+             <input
+               aria-label="Nombre de la encuesta"
+               value={flow.name}
+               onChange={(event) =>
+                 mutate((current) => ({ ...current, name: event.target.value }))
+               }
+               className="w-full bg-transparent text-sm font-semibold outline-none placeholder:text-slate-400"
+             />
+           ) : (
+             <h1 className="text-sm font-semibold">Encuestas por automatización</h1>
+           )}
+         </div>
+         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+           {flow && (
+             <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${currentStatus === "published" ? "bg-emerald-100 text-emerald-800" : currentStatus === "paused" ? "bg-amber-100 text-amber-900" : "bg-slate-100 text-slate-600"}`}>
+               {currentStatus === "published" ? "Publicada" : currentStatus === "paused" ? "Pausada" : "Borrador"}
+             </span>
+           )}
+           <span className="hidden text-xs text-slate-500 xl:block">{status}</span>
           {flow && (
             <>
               <button
@@ -485,8 +560,8 @@ export function SurveyStudioApp() {
                 onClick={() => save("published")}
                 className="rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white"
               >
-                <Send className="mr-1 inline size-4" />
-                {currentStatus === "paused" ? "Reactivar" : "Publicar"}
+                 <Send className="mr-1 inline size-4" />
+                 {currentStatus === "published" ? "Publicar cambios" : currentStatus === "paused" ? "Reactivar" : "Publicar"}
               </button>
               {currentStatus === "published" && (
                 <button
@@ -501,8 +576,8 @@ export function SurveyStudioApp() {
                   onClick={() => window.open(`/?preview=${serverId}`, "_blank")}
                   className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
                 >
-                  <span className="hidden xl:inline">Probar en landing</span>
-                  <span className="xl:hidden">Probar</span>
+                   <span className="hidden xl:inline">Vista previa guardada</span>
+                   <span className="xl:hidden">Vista previa</span>
                 </button>
               )}
               {serverId && (
@@ -519,7 +594,9 @@ export function SurveyStudioApp() {
           )}
         </div>
       </header>
-      <div className="grid min-h-[calc(100vh-4rem)] xl:grid-cols-[250px_minmax(0,1fr)_350px]">
+      <div
+         className={`grid min-h-[calc(100vh-4rem)] ${activeTab === STUDIO_TABS.BUILD ? "lg:grid-cols-[250px_minmax(0,1fr)_350px]" : "lg:grid-cols-[250px_minmax(0,1fr)]"}`}
+      >
         <aside className="border-r border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Encuestas</h2>
@@ -566,8 +643,8 @@ export function SurveyStudioApp() {
             <div className="inline-flex w-fit rounded-lg bg-slate-100 p-1 text-sm font-medium">
               {(
                 [
-                  ["canvas", "Canvas"],
-                  ["data", "Datos"],
+                  [STUDIO_TABS.BUILD, "Construir"],
+                  [STUDIO_TABS.DATA, "Datos"],
                 ] as const
               ).map(([tab, label]) => (
                 <button
@@ -581,40 +658,33 @@ export function SurveyStudioApp() {
               ))}
             </div>
             <p className="text-xs text-slate-500">
-              {activeTab === "canvas"
-                ? "Conecta Trigger → Condición → Encuesta"
-                : "Resultados de la encuesta seleccionada"}
-            </p>
-          </div>
-          {activeTab === "canvas" &&
+               {activeTab === STUDIO_TABS.BUILD
+                 ? "Diseña la encuesta y define su aparición desde Inicio"
+                 : "Resultados de la encuesta seleccionada"}
+             </p>
+           </div>
+           {activeTab === STUDIO_TABS.BUILD &&
             (flow ? (
               <div className="min-h-0 flex-1">
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
                   nodeTypes={nodeTypes}
-                  onNodesChange={onNodesChange}
-                  onEdgesChange={onEdgesChange}
-                  onNodeClick={(_, node) => setSelectedId(node.id)}
+                   onNodeClick={(_, node) => setSelectedId(node.id)}
                   onConnect={connect}
                   onNodeDragStop={(_, node) =>
                     updateNode(node.id, { position: node.position })
                   }
                   fitView
                 >
-                  <Panel position="top-left">
+                   <Panel position="top-left">
                     <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
                       <p className="px-1 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                        Añadir nodo
+                        Agregar paso
                       </p>
                       <div className="flex flex-wrap gap-1">
                         {(
-                          [
-                            "trigger",
-                            "condition",
-                            "survey",
-                            "action",
-                          ] as NodeKind[]
+                           ["condition", "survey", "action"] as NodeKind[]
                         ).map((type) => (
                           <button
                             key={type}
@@ -627,6 +697,16 @@ export function SurveyStudioApp() {
                         ))}
                       </div>
                     </div>
+                   </Panel>
+                  <Panel position="top-right" className="lg:hidden">
+                    <button
+                      type="button"
+                      onClick={() => setStepEditorOpen(true)}
+                      disabled={!selected}
+                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Pencil className="size-3" /> Editar paso
+                    </button>
                   </Panel>
                   <Background color="#cbd5e1" gap={20} size={1} />
                   <Controls />
@@ -638,59 +718,77 @@ export function SurveyStudioApp() {
                 Crea una encuesta para abrir el canvas.
               </div>
             ))}
-          {activeTab === "data" && (
+          {activeTab === STUDIO_TABS.DATA && (
             <div className="overflow-y-auto p-4 sm:p-6">
               <AnalyticsPanel flow={flow} serverId={serverId} />
             </div>
           )}
         </section>
-        <aside className="border-l border-slate-200 bg-white">
+         {activeTab === STUDIO_TABS.BUILD && (
+        <aside className="hidden border-l border-slate-200 bg-white lg:block">
           <div className="border-b border-slate-200 px-5 py-4">
             <h2 className="text-sm font-semibold">Inspector</h2>
             <p className="mt-1 text-xs text-slate-500">
-              Configura el nodo seleccionado.
+              Configura el paso seleccionado.
             </p>
           </div>
           {flow && (
             <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-5">
-              <label className="block text-xs font-medium text-slate-600">
-                Nombre de encuesta
-                <input
-                  value={flow.name}
-                  onChange={(event) =>
-                    mutate((current) => ({
-                      ...current,
-                      name: event.target.value,
-                    }))
-                  }
-                  className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
-                />
-              </label>
               {selected ? (
                 <NodeInspector
+                  flow={flow}
                   node={selected}
                   updateNode={updateNode}
                   addQuestion={addQuestion}
                   removeNode={removeNode}
+                  openRoutePicker={() => setRoutePickerOpen(true)}
+                  connectNodes={connectNodes}
                 />
               ) : (
                 <p className="mt-6 text-sm text-slate-500">
-                  Selecciona un nodo.
+                  Selecciona un paso del canvas.
                 </p>
               )}
-              <Preview
-                result={result}
-                signals={previewSignals}
-                setSignals={setPreviewSignals}
-                previewNow={previewNow}
-                refreshNow={() => setPreviewNow(Date.now())}
-                flowId={flow.id}
-                compact
-              />
             </div>
           )}
         </aside>
+        )}
       </div>
+      <Drawer open={stepEditorOpen} onOpenChange={setStepEditorOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Editar paso</DrawerTitle>
+            <DrawerDescription>
+              {selected
+                ? "Los cambios se reflejan inmediatamente en el canvas."
+                : "Selecciona un paso del canvas para configurarlo."}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="min-h-0 overflow-y-auto px-5 pb-8">
+            {selected && flow ? (
+              <NodeInspector
+                flow={flow}
+                node={selected}
+                updateNode={updateNode}
+                addQuestion={addQuestion}
+                removeNode={removeNode}
+                openRoutePicker={() => setRoutePickerOpen(true)}
+                connectNodes={connectNodes}
+              />
+            ) : (
+              <p className="text-sm text-slate-500">
+                Selecciona un paso del canvas.
+              </p>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
+      <RoutePickerDialog
+        flow={flow}
+        open={routePickerOpen}
+        onOpenChange={setRoutePickerOpen}
+        mutate={mutate}
+      />
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(open) => !open && setPendingDelete(null)}
@@ -710,6 +808,277 @@ export function SurveyStudioApp() {
         }}
       />
     </main>
+  );
+}
+
+function getTrigger(flow: SurveyFlow) {
+  return flow.nodes.find((node) => node.type === "trigger") ?? null;
+}
+
+function selectedPaths(config: TriggerConfig) {
+  if (config.targetMode === "selected") return config.pagePaths ?? [];
+  if (Array.isArray(config.pagePaths)) return config.pagePaths;
+  return typeof config.pagePath === "string" ? [config.pagePath] : [];
+}
+
+function DeliveryPanel({
+  flow,
+  mutate,
+  onChoosePages,
+}: {
+  flow: SurveyFlow | null;
+  mutate: (updater: (current: SurveyFlow) => SurveyFlow) => void;
+  onChoosePages: () => void;
+}) {
+  if (!flow) return <PanelMessage>Selecciona una encuesta para definir su distribución.</PanelMessage>;
+  const trigger = getTrigger(flow);
+  if (!trigger) return <PanelMessage>Esta encuesta necesita un paso de inicio.</PanelMessage>;
+  const config = trigger.config as TriggerConfig;
+  const targetMode = config.targetMode ?? (selectedPaths(config).length ? "selected" : "all");
+  const paths = selectedPaths(config);
+  const updateTrigger = (next: TriggerConfig) =>
+    mutate((current) => ({
+      ...current,
+      nodes: current.nodes.map((node) =>
+        node.id === trigger.id ? { ...node, config: next } : node,
+      ),
+    }));
+
+  return (
+    <section className="mx-auto w-full max-w-4xl space-y-5">
+      <div className="rounded-2xl bg-slate-950 p-6 text-white sm:p-8">
+        <div className="flex items-start gap-3">
+          <Sparkles className="mt-0.5 size-5 text-violet-300" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-200">Regla de entrada</p>
+            <h2 className="mt-2 text-xl font-semibold">¿A quién y cuándo debe aparecer?</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+              Esta regla determina la elegibilidad antes de que el recorrido comience. Las condiciones del canvas se usan después para personalizar la experiencia.
+            </p>
+          </div>
+        </div>
+        <p className="mt-6 rounded-xl bg-white/10 px-4 py-3 text-sm text-white">
+          {targetMode === "all" ? "Se mostrará en cualquier página pública" : `Se mostrará en ${paths.length} ${paths.length === 1 ? "página seleccionada" : "páginas seleccionadas"}`} desde la visita {Math.max(1, Number(config.visitCount ?? 3))}.
+        </p>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold">Momento de aparición</h3>
+          <p className="mt-1 text-sm text-slate-500">Evita interrumpir a quien apenas conoce el sitio.</p>
+          <label className="mt-5 block text-sm font-medium text-slate-700">
+            Mostrar después de
+            <div className="mt-2 flex items-center gap-3">
+              <input
+                type="number"
+                min={1}
+                value={Math.max(1, Number(config.visitCount ?? 3))}
+                onChange={(event) => updateTrigger({ ...config, visitCount: Math.max(1, Number(event.target.value)) })}
+                className="h-11 w-24 rounded-lg border border-slate-200 px-3 text-sm"
+              />
+              <span className="text-sm text-slate-500">visitas acumuladas</span>
+            </div>
+          </label>
+          <p className="mt-3 text-xs leading-5 text-slate-500">Una persona será elegible a partir de su {Math.max(1, Number(config.visitCount ?? 3))}a visita.</p>
+        </article>
+
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold">Páginas</h3>
+          <p className="mt-1 text-sm text-slate-500">Elige el alcance de la encuesta de forma explícita.</p>
+          <div className="mt-5 grid gap-2">
+            <label className={`cursor-pointer rounded-xl border p-3 ${targetMode === "all" ? "border-slate-950 bg-slate-50" : "border-slate-200"}`}>
+              <input
+                className="sr-only"
+                type="radio"
+                name="page-targeting"
+                checked={targetMode === "all"}
+                onChange={() => updateTrigger({ visitCount: config.visitCount, targetMode: "all" })}
+              />
+              <span className="block text-sm font-semibold">Cualquier página pública</span>
+              <span className="mt-1 block text-xs text-slate-500">La encuesta puede aparecer en cualquier ruta pública.</span>
+            </label>
+            <label className={`cursor-pointer rounded-xl border p-3 ${targetMode === "selected" ? "border-slate-950 bg-slate-50" : "border-slate-200"}`}>
+              <input
+                className="sr-only"
+                type="radio"
+                name="page-targeting"
+                checked={targetMode === "selected"}
+                onChange={() => {
+                  if (paths.length) updateTrigger({ visitCount: config.visitCount, targetMode: "selected", pagePaths: paths });
+                  else onChoosePages();
+                }}
+              />
+              <span className="block text-sm font-semibold">Sólo páginas específicas</span>
+              <span className="mt-1 block text-xs text-slate-500">Restringe la encuesta a las rutas que elijas.</span>
+            </label>
+          </div>
+          {targetMode === "selected" && (
+            <button type="button" onClick={onChoosePages} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800">
+              <SlidersHorizontal className="size-4" /> {paths.length ? `Editar ${paths.length} páginas` : "Elegir páginas"}
+            </button>
+          )}
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function RoutePickerDialog({
+  flow,
+  open,
+  onOpenChange,
+  mutate,
+}: {
+  flow: SurveyFlow | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mutate: (updater: (current: SurveyFlow) => SurveyFlow) => void;
+}) {
+  const trigger = flow ? getTrigger(flow) : null;
+  const config = (trigger?.config ?? {}) as TriggerConfig;
+  const [query, setQuery] = useState("");
+  const paths = selectedPaths(config);
+  const routes = PUBLIC_ROUTES.filter((route) => route.label.toLowerCase().includes(query.toLowerCase()) || route.path.includes(query));
+  const update = (pagePaths: string[]) => {
+    if (!trigger) return;
+    mutate((current) => ({
+      ...current,
+      nodes: current.nodes.map((node) => node.id === trigger.id ? { ...node, config: { visitCount: config.visitCount, targetMode: "selected", pagePaths } } : node),
+    }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden bg-white p-0 text-slate-900 dark:bg-white dark:text-slate-900">
+        <DialogHeader className="border-b border-slate-200 p-6 pb-4">
+          <DialogTitle>Elegir páginas</DialogTitle>
+          <DialogDescription>La encuesta sólo podrá aparecer en estas páginas públicas.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 p-6 pt-4">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre o ruta" className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400" />
+            <button type="button" onClick={() => update(PUBLIC_ROUTES.map((route) => route.path))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium">Seleccionar todas</button>
+          </div>
+          <p className="text-xs font-medium text-slate-500">{paths.length} {paths.length === 1 ? "página seleccionada" : "páginas seleccionadas"}</p>
+          <div className="max-h-[42vh] space-y-1 overflow-y-auto rounded-xl border border-slate-200 p-2">
+            {routes.map((route) => {
+              const selected = paths.includes(route.path);
+              return (
+                <label key={route.path} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-slate-50">
+                  <input type="checkbox" checked={selected} onChange={() => update(selected ? paths.filter((path) => path !== route.path) : [...paths, route.path])} className="size-4 rounded border-slate-300" />
+                  <span className="min-w-0"><span className="block text-sm font-medium text-slate-800">{route.label}</span><span className="block truncate text-xs text-slate-500">{route.path}</span></span>
+                </label>
+              );
+            })}
+          </div>
+          {paths.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Elige al menos una página o vuelve a “Cualquier página pública”.</p>}
+          <div className="flex justify-end"><button type="button" onClick={() => onOpenChange(false)} disabled={!paths.length} className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Confirmar páginas</button></div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ReviewPanel({
+  flow,
+  result,
+  onNavigate,
+  onPublish,
+}: {
+  flow: SurveyFlow | null;
+  result: ReturnType<typeof evaluateFlow> | null;
+  onNavigate: (tab: StudioTab) => void;
+  onPublish: () => void;
+}) {
+  if (!flow) return <PanelMessage>Selecciona una encuesta para revisarla.</PanelMessage>;
+  const validation = validateFlow(flow);
+  const trigger = getTrigger(flow);
+  const fields = flow.nodes.filter((node) => node.type === "survey").flatMap((node) => (node.config.fields as SurveyField[] | undefined) ?? []);
+  const checks = [
+    { label: "Distribución definida", detail: trigger ? "Páginas y visitas listas" : "Falta el inicio", tab: STUDIO_TABS.AUDIENCE, ready: Boolean(trigger) },
+    { label: "Preguntas para visitantes", detail: fields.length ? `${fields.length} preguntas configuradas` : "Añade al menos una pregunta", tab: STUDIO_TABS.BUILD, ready: fields.length > 0 },
+    { label: "Recorrido completo", detail: validation.success ? "Todas las conexiones son válidas" : describeValidationError(validation.error.issues[0]?.message ?? ""), tab: STUDIO_TABS.BUILD, ready: validation.success },
+    { label: "Simulación", detail: result?.matched ? "El escenario actual es elegible" : "Comprueba un escenario antes de publicar", tab: STUDIO_TABS.SIMULATE, ready: Boolean(result?.matched) },
+  ];
+  return <section className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"><h2 className="text-xl font-semibold">Revisar y publicar</h2><p className="mt-2 text-sm text-slate-500">Comprueba la experiencia antes de mostrarla a visitantes reales.</p><div className="mt-6 space-y-3">{checks.map((check) => <button key={check.label} type="button" onClick={() => onNavigate(check.tab)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left hover:border-slate-400"><span className={check.ready ? "text-emerald-600" : "text-amber-600"}>{check.ready ? <CheckCircle2 className="size-5" /> : <CircleAlert className="size-5" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-slate-900">{check.label}</span><span className="mt-0.5 block text-xs text-slate-500">{check.detail}</span></span><span className="text-xs font-medium text-slate-500">Abrir</span></button>)}</div><button type="button" disabled={!validation.success} onClick={onPublish} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"><Send className="size-4" />{validation.success ? "Publicar encuesta" : "Corrige los puntos pendientes"}</button></section>;
+}
+
+function SettingsPanel({
+  flow,
+  persistedFlow,
+  status,
+  mutate,
+}: {
+  flow: SurveyFlow | null;
+  persistedFlow: StoredFlow | null;
+  status: string;
+  mutate: (updater: (current: SurveyFlow) => SurveyFlow) => void;
+}) {
+  if (!flow) {
+    return <PanelMessage>Selecciona o crea una encuesta para configurarla.</PanelMessage>;
+  }
+
+  const persistedStatus = persistedFlow
+    ? persistedFlow.status === "published"
+      ? "Publicada"
+      : persistedFlow.status === "paused"
+        ? "Pausada"
+        : "Borrador"
+    : "Aún no guardada";
+
+  return (
+    <section className="mx-auto w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+      <div>
+        <h2 className="text-lg font-semibold">Configuración</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Define cómo se identifica esta encuesta. Los pasos se editan desde
+          Canvas.
+        </p>
+      </div>
+      <div className="mt-6 grid gap-5">
+        <label className="block text-sm font-medium text-slate-700">
+          Nombre de encuesta
+          <input
+            value={flow.name}
+            onChange={(event) =>
+              mutate((current) => ({ ...current, name: event.target.value }))
+            }
+            className="mt-1.5 h-10 w-full rounded border border-slate-200 px-3 text-sm"
+          />
+        </label>
+        <label className="block text-sm font-medium text-slate-700">
+          Descripción
+          <textarea
+            value={flow.description}
+            onChange={(event) =>
+              mutate((current) => ({
+                ...current,
+                description: event.target.value,
+              }))
+            }
+            className="mt-1.5 min-h-28 w-full rounded border border-slate-200 p-3 text-sm"
+            placeholder="Explica el objetivo o contexto de esta encuesta."
+          />
+        </label>
+      </div>
+      <div className="mt-7 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+          Estado persistido
+        </p>
+        <p className="mt-2 text-sm font-semibold text-slate-800">
+          {persistedStatus}
+        </p>
+        <p className="mt-1 text-xs text-slate-500">
+          {persistedFlow
+            ? `Última versión guardada: ${new Intl.DateTimeFormat("es-MX", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }).format(new Date(persistedFlow.graph.updatedAt))}`
+            : "Guarda esta encuesta para crear una versión persistida."}
+        </p>
+        <p className="mt-3 text-xs font-medium text-slate-600">{status}</p>
+      </div>
+    </section>
   );
 }
 
@@ -1027,15 +1396,21 @@ function TextAnalytics({
 }
 
 function NodeInspector({
+  flow,
   node,
   updateNode,
   addQuestion,
   removeNode,
+  openRoutePicker,
+  connectNodes,
 }: {
+  flow: SurveyFlow;
   node: WorkflowNode;
   updateNode: (id: string, patch: Partial<WorkflowNode>) => void;
   addQuestion: (kind: SurveyField["kind"]) => string | null;
   removeNode: () => void;
+  openRoutePicker: () => void;
+  connectNodes: (sourceId: string, targetId: string, outcome: "next" | "match" | "else") => void;
 }) {
   const fields = (node.config.fields as SurveyField[] | undefined) ?? [];
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
@@ -1061,16 +1436,31 @@ function NodeInspector({
     setSelectedFieldId(remaining[0]?.id ?? null);
   }
 
+  function moveField(id: string, direction: -1 | 1) {
+    const index = fields.findIndex((field) => field.id === id);
+    const destination = index + direction;
+    if (index < 0 || destination < 0 || destination >= fields.length) return;
+    const reordered = [...fields];
+    [reordered[index], reordered[destination]] = [
+      reordered[destination],
+      reordered[index],
+    ];
+    updateNode(node.id, { config: { ...node.config, fields: reordered } });
+  }
+
   return (
     <div className="mt-6 border-t border-slate-100 pt-5">
       <div className="rounded-xl bg-slate-950 p-4 text-white">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-          Editando {meta[node.type as NodeKind]?.name}
-        </p>
+        <span className="inline-flex rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-300">
+          {meta[node.type as NodeKind]?.name}
+        </span>
         <p className="mt-1 text-sm font-semibold">{node.label}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-300">
+          {meta[node.type as NodeKind]?.purpose}
+        </p>
       </div>
       <label className="mt-5 block text-xs font-medium text-slate-600">
-        Nombre del nodo
+        Nombre del paso
         <input
           value={node.label}
           onChange={(event) =>
@@ -1078,44 +1468,16 @@ function NodeInspector({
           }
           className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
         />
+        <span className="mt-1 block font-normal text-slate-500">
+          Este nombre solo identifica el paso dentro del canvas.
+        </span>
       </label>
       {node.type === "trigger" && (
-        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-            Cuándo mostrar
-          </p>
-          <div className="grid gap-3">
-            <label className="text-xs font-medium text-slate-600">
-              Visitas mínimas
-              <input
-                type="number"
-                min={1}
-                value={Number(node.config.visitCount ?? 3)}
-                onChange={(event) =>
-                  updateNode(node.id, {
-                    config: {
-                      ...node.config,
-                      visitCount: Number(event.target.value),
-                    },
-                  })
-                }
-                className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
-              />
-            </label>
-            <label className="text-xs font-medium text-slate-600">
-              Página
-              <input
-                value={String(node.config.pagePath ?? "/")}
-                onChange={(event) =>
-                  updateNode(node.id, {
-                    config: { ...node.config, pagePath: event.target.value },
-                  })
-                }
-                className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
-              />
-            </label>
-          </div>
-        </div>
+        <StartInspector
+          node={node}
+          updateNode={updateNode}
+          openRoutePicker={openRoutePicker}
+        />
       )}
       {node.type === "condition" && (
         <ConditionInspector node={node} updateNode={updateNode} />
@@ -1123,9 +1485,14 @@ function NodeInspector({
       {node.type === "survey" && (
         <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-              Preguntas
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">
+                Diseña la encuesta
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Añade y ordena las preguntas que verá la persona.
+              </p>
+            </div>
             <span className="text-xs text-slate-500">{fields.length}</span>
           </div>
           <div className="mt-3 flex gap-1">
@@ -1164,26 +1531,23 @@ function NodeInspector({
               </p>
             )}
             {fields.map((field, index) => (
-              <button
-                key={field.id}
-                type="button"
-                onClick={() => setSelectedFieldId(field.id)}
-                className={`w-full rounded border p-3 text-left transition ${selectedField?.id === field.id ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-400"}`}
-              >
-                <span className="text-xs text-slate-400">
-                  Pregunta {index + 1}
-                </span>
-                <p className="mt-1 truncate text-sm font-medium">
-                  {field.label}
-                </p>
-                <p className="mt-1 text-xs text-slate-400">{field.kind}</p>
-              </button>
+              <div key={field.id} className={`flex rounded border transition ${selectedField?.id === field.id ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-400"}`}>
+                <button type="button" onClick={() => setSelectedFieldId(field.id)} className="min-w-0 flex-1 p-3 text-left">
+                  <span className="text-xs text-slate-400">Pregunta {index + 1}</span>
+                  <p className="mt-1 truncate text-sm font-medium">{field.label}</p>
+                  <p className="mt-1 text-xs text-slate-400">{field.kind}</p>
+                </button>
+                <div className="flex flex-col justify-center border-l border-slate-200 px-1">
+                  <button type="button" aria-label={`Subir pregunta ${index + 1}`} disabled={index === 0} onClick={() => moveField(field.id, -1)} className="px-2 py-1 text-xs text-slate-500 disabled:opacity-30">↑</button>
+                  <button type="button" aria-label={`Bajar pregunta ${index + 1}`} disabled={index === fields.length - 1} onClick={() => moveField(field.id, 1)} className="px-2 py-1 text-xs text-slate-500 disabled:opacity-30">↓</button>
+                </div>
+              </div>
             ))}
           </div>
           {selectedField && (
             <div className="mt-4 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs font-semibold text-slate-700">
-                Editar pregunta
+                Configura la pregunta
               </p>
               <label className="block text-xs font-medium text-slate-600">
                 Tipo
@@ -1256,25 +1620,130 @@ function NodeInspector({
         </div>
       )}
       {node.type === "action" && (
-        <label className="mt-4 block text-xs font-medium text-slate-600">
-          Mensaje
-          <textarea
-            value={String(node.config.message ?? "")}
-            onChange={(event) =>
-              updateNode(node.id, {
-                config: { ...node.config, message: event.target.value },
-              })
-            }
-            className="mt-1.5 min-h-20 w-full rounded border border-slate-200 p-2 text-sm"
-          />
-        </label>
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="text-sm font-semibold text-slate-800">
+            Cierra la experiencia
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Este es el último paso: muestra un mensaje y no conecta con otro
+            paso.
+          </p>
+          <label className="mt-3 block text-xs font-medium text-slate-600">
+            Mensaje de cierre
+            <textarea
+              value={String(node.config.message ?? "")}
+              onChange={(event) =>
+                updateNode(node.id, {
+                  config: { ...node.config, message: event.target.value },
+                })
+              }
+              className="mt-1.5 min-h-20 w-full rounded border border-slate-200 bg-white p-2 text-sm"
+            />
+          </label>
+        </div>
       )}
-      <button
-        onClick={removeNode}
-        className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-red-600"
-      >
-        <Trash2 className="size-3" /> Eliminar nodo
-      </button>
+      {node.type !== "action" && (
+        <ConnectionInspector
+          flow={flow}
+          node={node}
+          connectNodes={connectNodes}
+        />
+      )}
+      {node.type !== "trigger" && (
+        <button
+          onClick={removeNode}
+          className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-red-600"
+        >
+          <Trash2 className="size-3" /> Eliminar paso
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ConnectionInspector({
+  flow,
+  node,
+  connectNodes,
+}: {
+  flow: SurveyFlow;
+  node: WorkflowNode;
+  connectNodes: (sourceId: string, targetId: string, outcome: "next" | "match" | "else") => void;
+}) {
+  const options = flow.nodes.filter((candidate) => candidate.id !== node.id);
+  const targetFor = (outcome: "next" | "match" | "else") =>
+    flow.edges.find((edge) => edge.from === node.id && edge.outcome === outcome)?.to ?? "";
+  const outputs = node.type === "condition"
+    ? [{ outcome: "match" as const, label: "Si cumple" }, { outcome: "else" as const, label: "Si no cumple" }]
+    : [{ outcome: "next" as const, label: "Después, ir a" }];
+
+  return (
+    <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
+      <p className="text-sm font-semibold text-slate-800">Conexiones</p>
+      <p className="mt-1 text-xs leading-5 text-slate-500">También puedes unir los nodos arrastrando desde sus puntos laterales.</p>
+      <div className="mt-3 space-y-2">
+        {outputs.map(({ outcome, label }) => (
+          <label key={outcome} className="block text-xs font-medium text-slate-600">
+            {label}
+            <select
+              value={targetFor(outcome)}
+              onChange={(event) => {
+                if (event.target.value) connectNodes(node.id, event.target.value, outcome);
+              }}
+              className="mt-1.5 h-9 w-full rounded border border-slate-200 bg-white px-2 text-sm text-slate-800"
+            >
+              <option value="">Seleccionar siguiente paso</option>
+              {options.map((option) => (
+                <option key={option.id} value={option.id}>{meta[option.type as NodeKind]?.name}: {option.label}</option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StartInspector({
+  node,
+  updateNode,
+  openRoutePicker,
+}: {
+  node: WorkflowNode;
+  updateNode: (id: string, patch: Partial<WorkflowNode>) => void;
+  openRoutePicker: () => void;
+}) {
+  const config = node.config as TriggerConfig;
+  const paths = selectedPaths(config);
+  const mode = config.targetMode ?? (paths.length ? "selected" : "all");
+  const update = (next: TriggerConfig) => updateNode(node.id, { config: next });
+
+  return (
+    <div className="mt-5 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div>
+        <p className="text-sm font-semibold text-slate-800">Cuándo mostrarla</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">Define la aparición antes de que el visitante entre al recorrido.</p>
+      </div>
+      <label className="block text-xs font-medium text-slate-600">
+        Mostrar después de
+        <div className="mt-1.5 flex items-center gap-2">
+          <input type="number" min={1} value={Math.max(1, Number(config.visitCount ?? 3))} onChange={(event) => update({ ...config, visitCount: Math.max(1, Number(event.target.value)) })} className="h-9 w-20 rounded border border-slate-200 bg-white px-2 text-sm" />
+          <span className="text-sm font-normal text-slate-500">visitas</span>
+        </div>
+      </label>
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-medium text-slate-600">Dónde mostrarla</legend>
+        <label className={`block cursor-pointer rounded-lg border p-3 ${mode === "all" ? "border-slate-900 bg-white" : "border-slate-200 bg-white"}`}>
+          <input className="sr-only" type="radio" name={`target-${node.id}`} checked={mode === "all"} onChange={() => update({ visitCount: config.visitCount, targetMode: "all" })} />
+          <span className="block text-xs font-semibold text-slate-800">Cualquier página pública</span>
+        </label>
+        <label className={`block cursor-pointer rounded-lg border p-3 ${mode === "selected" ? "border-slate-900 bg-white" : "border-slate-200 bg-white"}`}>
+          <input className="sr-only" type="radio" name={`target-${node.id}`} checked={mode === "selected"} onChange={() => paths.length ? update({ visitCount: config.visitCount, targetMode: "selected", pagePaths: paths }) : openRoutePicker()} />
+          <span className="block text-xs font-semibold text-slate-800">Sólo páginas específicas</span>
+          <span className="mt-1 block text-xs text-slate-500">{paths.length ? `${paths.length} ${paths.length === 1 ? "página elegida" : "páginas elegidas"}` : "Elige las rutas donde debe aparecer"}</span>
+        </label>
+      </fieldset>
+      {mode === "selected" && <button type="button" onClick={openRoutePicker} className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"><SlidersHorizontal className="size-3.5" /> Elegir páginas</button>}
     </div>
   );
 }
@@ -1291,83 +1760,95 @@ function ConditionInspector({
     updateNode(node.id, { config: next });
 
   return (
-    <div className="mt-4 space-y-3">
-      <label className="block text-xs font-medium text-slate-600">
-        Señal
-        <select
-          value={config.kind}
-          onChange={(event) => {
-            const kind = event.target.value as ConditionConfig["kind"];
-            updateConfig(conditionForKind(kind));
-          }}
-          className="mt-1.5 h-9 w-full rounded border border-slate-200 bg-white px-2 text-sm"
-        >
-          <option value="visitCount">Visitas</option>
-          <option value="pagePath">Página actual</option>
-          <option value="selectedServiceId">Servicio seleccionado</option>
-          <option value="selectedBranchId">Sucursal seleccionada</option>
-          <option value="whatsappBookingIntent">Intención de WhatsApp</option>
-          <option value="cooldown">Cooldown</option>
-        </select>
-      </label>
-      {config.kind === "selectedServiceId" ? (
-        <CatalogSelect
-          label="Servicio"
-          value={config.value}
-          onChange={(value) => updateConfig({ ...config, value })}
-          options={services.map((service) => ({
-            value: String(service.id),
-            label: service.title,
-          }))}
-        />
-      ) : config.kind === "selectedBranchId" ? (
-        <CatalogSelect
-          label="Sucursal"
-          value={config.value}
-          onChange={(value) => updateConfig({ ...config, value })}
-          options={Object.entries(locations).map(([value, location]) => ({
-            value,
-            label: location.name,
-          }))}
-        />
-      ) : config.kind === "whatsappBookingIntent" ? (
-        <p className="rounded border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-          Coincide cuando hubo una intención de reservar por WhatsApp en las
-          últimas 24 horas.
+    <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div className="mb-3">
+        <p className="text-sm font-semibold text-slate-800">
+          Define la condición
         </p>
-      ) : (
+        <p className="mt-1 text-xs text-slate-500">
+          Si la señal cumple, sigue la rama Cumple; si no, No cumple.
+        </p>
+      </div>
+      <div className="space-y-3">
         <label className="block text-xs font-medium text-slate-600">
-          {config.kind === "pagePath"
-            ? "Ruta"
-            : config.kind === "cooldown"
-              ? "Minutos"
-              : "Visitas mínimas"}
-          <input
-            type={config.kind === "pagePath" ? "text" : "number"}
-            min={config.kind === "pagePath" ? undefined : 0}
-            value={
-              config.kind === "cooldown" ? config.value / 60_000 : config.value
-            }
-            onChange={(event) =>
-              updateConfig({
-                ...config,
-                value:
-                  config.kind === "pagePath"
-                    ? event.target.value
-                    : Math.max(
-                        config.kind === "cooldown" ? 1 : 0,
-                        Number(event.target.value) *
-                          (config.kind === "cooldown" ? 60_000 : 1),
-                      ),
-              } as ConditionConfig)
-            }
-            className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
-          />
+          Señal
+          <select
+            value={config.kind}
+            onChange={(event) => {
+              const kind = event.target.value as ConditionConfig["kind"];
+              updateConfig(conditionForKind(kind));
+            }}
+            className="mt-1.5 h-9 w-full rounded border border-slate-200 bg-white px-2 text-sm"
+          >
+            <option value="visitCount">Visitas</option>
+            <option value="pagePath">Página actual</option>
+            <option value="selectedServiceId">Servicio seleccionado</option>
+            <option value="selectedBranchId">Sucursal seleccionada</option>
+            <option value="whatsappBookingIntent">Intención de WhatsApp</option>
+            <option value="cooldown">Cooldown</option>
+          </select>
         </label>
-      )}
-      <p className="text-xs text-slate-500">
-        Conecta Match y Otherwise por separado en el canvas.
-      </p>
+        {config.kind === "selectedServiceId" ? (
+          <CatalogSelect
+            label="Servicio"
+            value={config.value}
+            onChange={(value) => updateConfig({ ...config, value })}
+            options={services.map((service) => ({
+              value: String(service.id),
+              label: service.title,
+            }))}
+          />
+        ) : config.kind === "selectedBranchId" ? (
+          <CatalogSelect
+            label="Sucursal"
+            value={config.value}
+            onChange={(value) => updateConfig({ ...config, value })}
+            options={Object.entries(locations).map(([value, location]) => ({
+              value,
+              label: location.name,
+            }))}
+          />
+        ) : config.kind === "whatsappBookingIntent" ? (
+          <p className="rounded border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+            Coincide cuando hubo una intención de reservar por WhatsApp en las
+            últimas 24 horas.
+          </p>
+        ) : (
+          <label className="block text-xs font-medium text-slate-600">
+            {config.kind === "pagePath"
+              ? "Ruta"
+              : config.kind === "cooldown"
+                ? "Minutos"
+                : "Visitas mínimas"}
+            <input
+              type={config.kind === "pagePath" ? "text" : "number"}
+              min={config.kind === "pagePath" ? undefined : 0}
+              value={
+                config.kind === "cooldown"
+                  ? config.value / 60_000
+                  : config.value
+              }
+              onChange={(event) =>
+                updateConfig({
+                  ...config,
+                  value:
+                    config.kind === "pagePath"
+                      ? event.target.value
+                      : Math.max(
+                          config.kind === "cooldown" ? 1 : 0,
+                          Number(event.target.value) *
+                            (config.kind === "cooldown" ? 60_000 : 1),
+                        ),
+                } as ConditionConfig)
+              }
+              className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
+            />
+          </label>
+        )}
+        <p className="text-xs text-slate-500">
+          Conecta sólo las salidas que deben continuar. Una salida sin conexión termina el recorrido sin mostrar la encuesta.
+        </p>
+      </div>
     </div>
   );
 }
@@ -1401,33 +1882,67 @@ function CatalogSelect({
   );
 }
 
-function Preview({
+function TestingPanel({
+  flow,
+  serverId,
   result,
   signals,
   setSignals,
   previewNow,
   refreshNow,
-  flowId,
-  compact = false,
 }: {
+  flow: SurveyFlow | null;
+  serverId: string | null;
   result: ReturnType<typeof evaluateFlow> | null;
   signals: VisitorSignals;
   setSignals: (signals: VisitorSignals) => void;
   previewNow: number;
   refreshNow: () => void;
-  flowId: string;
-  compact?: boolean;
 }) {
+  if (!flow) {
+    return (
+      <div className="mx-auto w-full max-w-3xl p-5 sm:p-8">
+        <PanelMessage>Selecciona una encuesta para probarla.</PanelMessage>
+      </div>
+    );
+  }
+
+  const validation = validateFlow(flow);
+  const validationErrors = validation.success
+    ? []
+    : validation.error.issues.map((issue) => describeValidationError(issue.message));
+  const diagnostics = result?.reasons.map(describeDiagnostic) ?? [];
+  const errors = validationErrors.length ? validationErrors : (result?.errors ?? []);
+  const flowState = signals.flows?.[flow.id];
+
   return (
-    <div
-      className={
-        compact
-          ? "mt-7 border-t border-slate-200 pt-5"
-          : "mx-auto w-full max-w-3xl p-5 sm:p-8"
-      }
-    >
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Preview</h3>
+    <div className="mx-auto w-full max-w-3xl p-5 sm:p-8">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+          <div>
+            <h2 className="text-lg font-semibold">Probar</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Simulación aislada: no usa ni modifica señales o respuestas reales.
+            </p>
+          </div>
+          {serverId && (
+            <button
+              type="button"
+              onClick={() => window.open(`/?preview=${serverId}`, "_blank")}
+              className="shrink-0 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
+            >
+              Probar última versión guardada
+            </button>
+          )}
+        </div>
+        {serverId && (
+          <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+            Abrir <code>/?preview={serverId}</code> prueba la última versión
+            guardada, no los cambios sin guardar de este editor.
+          </p>
+        )}
+        <div className="mt-5 flex items-center justify-between">
+          <h3 className="text-sm font-semibold">Señales de simulación</h3>
         <button
           type="button"
           onClick={refreshNow}
@@ -1435,11 +1950,8 @@ function Preview({
         >
           Actualizar hora
         </button>
-      </div>
-      <p className="mt-2 text-xs text-slate-500">
-        Simulación aislada: no usa ni modifica señales o respuestas reales.
-      </p>
-      <div className="mt-4 grid gap-3">
+        </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="text-xs font-medium text-slate-600">
           Visitas
           <input
@@ -1455,16 +1967,12 @@ function Preview({
             className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
           />
         </label>
-        <label className="text-xs font-medium text-slate-600">
-          Ruta
-          <input
-            value={signals.pathname}
-            onChange={(event) =>
-              setSignals({ ...signals, pathname: event.target.value })
-            }
-            className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"
-          />
-        </label>
+        <CatalogSelect
+          label="Página que visita"
+          value={signals.pathname}
+          onChange={(pathname) => setSignals({ ...signals, pathname })}
+          options={PUBLIC_ROUTES.map((route) => ({ value: route.path, label: route.label }))}
+        />
         <CatalogSelect
           label="Servicio seleccionado"
           value={signals.selectedServiceId ?? ""}
@@ -1514,67 +2022,130 @@ function Preview({
           />
           Intención de reservar por WhatsApp
         </label>
-        <div className="grid gap-2">
-          <p className="text-xs font-medium text-slate-600">
-            Señales terminales (epoch ms)
-          </p>
-          {(["shownAt", "dismissedAt", "completedAt"] as const).map((key) => (
-            <label key={key} className="text-xs text-slate-500">
-              {key === "shownAt"
-                ? "Mostrada"
-                : key === "dismissedAt"
-                  ? "Descartada"
-                  : "Completada"}
-              <input
-                type="number"
-                min={0}
-                value={signals.flows?.[flowId]?.[key] ?? ""}
-                onChange={(event) => {
-                  const timestamp = Number(event.target.value);
-                  const current = { ...signals.flows?.[flowId] };
-                  if (timestamp) current[key] = timestamp;
-                  else delete current[key];
-                  setSignals({
-                    ...signals,
-                    flows: Object.keys(current).length
-                      ? { ...signals.flows, [flowId]: current }
-                      : undefined,
-                  });
-                }}
-                placeholder="0"
-                className="mt-1 h-8 w-full rounded border border-slate-200 px-2 text-sm"
-              />
-            </label>
-          ))}
-        </div>
+        <label className="grid gap-1 text-xs font-medium text-slate-600 sm:col-span-2">
+          Estado previo y cooldown de esta encuesta
+          <select
+            value={
+              flowState?.completedAt
+                ? "completed"
+                : flowState?.dismissedAt
+                  ? "dismissed"
+                  : flowState?.shownAt
+                    ? "shown"
+                    : "new"
+            }
+            onChange={(event) => {
+              const status = event.target.value;
+              const flows = { ...signals.flows };
+                if (status === "new") delete flows[flow.id];
+                else {
+                  flows[flow.id] =
+                  status === "shown"
+                    ? { shownAt: previewNow }
+                    : status === "dismissed"
+                      ? { dismissedAt: previewNow }
+                      : { completedAt: previewNow };
+              }
+              setSignals({
+                ...signals,
+                flows: Object.keys(flows).length ? flows : undefined,
+              });
+            }}
+            className="h-9 rounded border border-slate-200 bg-white px-2 text-sm text-slate-900"
+          >
+            <option value="new">Aún no se muestra</option>
+            <option value="shown">Ya se mostró</option>
+            <option value="dismissed">La cerró</option>
+            <option value="completed">La completó</option>
+          </select>
+          <span className="font-normal text-slate-500">
+            Úsalo para probar el cooldown en esta simulación.
+          </span>
+        </label>
       </div>
-      {!result?.matched ? (
-        <p className="mt-4 text-sm text-slate-500">
-          No coincide: {result?.reasons.join(", ") || "flujo incompleto"}.
+      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+          Elegibilidad
         </p>
-      ) : result.survey ? (
-        <div className="mt-4 rounded-lg bg-slate-50 p-3">
-          <p className="text-xs text-slate-400">Encuesta activa</p>
-          {(
-            (result.survey.config.fields as SurveyField[] | undefined) ?? []
-          ).map((field) => (
-            <p key={field.id} className="mt-2 text-sm font-medium">
-              {field.label}
-            </p>
-          ))}
+        <p className={`mt-2 text-sm font-semibold ${result?.matched ? "text-emerald-700" : "text-amber-800"}`}>
+          {result?.matched
+            ? "Elegible: la encuesta se mostraría con estas señales."
+            : "No elegible con estas señales."}
+        </p>
+        {result?.survey && (
+          <p className="mt-2 text-xs text-slate-600">
+            Encuesta activa: {result.survey.label}
+          </p>
+        )}
+        <p className="mt-3 text-xs text-slate-600">
+          Ruta: {result?.path.join(" → ") || "Aún no se puede recorrer el flujo."}
+        </p>
+        <p className="mt-1 text-xs text-slate-600">
+          Diagnóstico: {diagnostics.join(". ") || "Sin decisiones todavía."}
+        </p>
+      </div>
+      {errors.length > 0 && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+          <p className="font-semibold">Corrige estos errores antes de publicar</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+            {errors.map((error, index) => (
+              <li key={`${error}-${index}`}>{error}</li>
+            ))}
+          </ul>
         </div>
-      ) : (
-        <p className="mt-4 text-sm text-amber-700">
-          Conecta una encuesta al trigger.
-        </p>
       )}
-      {result && (
-        <p className="mt-4 text-xs text-slate-500">
-          Ruta: {result.path.join(" → ") || "sin ruta"}
-          <br />
-          Diagnóstico: {result.reasons.join(", ") || "sin decisiones"}
-        </p>
-      )}
+      </div>
     </div>
   );
+}
+
+function describeDiagnostic(reason: string) {
+  const descriptions: Record<string, string> = {
+    "flow:invalid": "El flujo no es válido todavía",
+    "trigger:missing": "Falta el paso Inicio",
+    "trigger:match": "El inicio coincide con las señales",
+    "trigger:visitCount:fail": "No alcanza el mínimo de visitas",
+    "trigger:pagePath:fail": "La ruta no está entre las páginas objetivo",
+    "trigger:pagePaths:fail": "La ruta no está entre las páginas objetivo",
+    "edge:next": "Se siguió la conexión principal",
+    "edge:match": "Se siguió la rama Cumple",
+    "edge:else": "Se siguió la rama No cumple",
+    "condition:visitCount:match": "La condición de visitas se cumple",
+    "condition:visitCount:else": "La condición de visitas no se cumple",
+    "condition:pagePath:match": "La condición de página se cumple",
+    "condition:pagePath:else": "La condición de página no se cumple",
+    "condition:selectedServiceId:match": "El servicio seleccionado coincide",
+    "condition:selectedServiceId:else": "El servicio seleccionado no coincide",
+    "condition:selectedBranchId:match": "La sucursal seleccionada coincide",
+    "condition:selectedBranchId:else": "La sucursal seleccionada no coincide",
+    "condition:whatsappBookingIntent:match": "La intención de WhatsApp está vigente",
+    "condition:whatsappBookingIntent:else": "No hay intención de WhatsApp vigente",
+    "condition:cooldown:match": "El cooldown ya terminó",
+    "condition:cooldown:else": "El cooldown aún está activo",
+  };
+  return descriptions[reason] ?? reason;
+}
+
+function describeValidationError(error: string) {
+  if (error === "A flow must have exactly one trigger")
+    return "Añade exactamente un paso Inicio.";
+  if (error === "Every edge must reference existing nodes")
+    return "Elimina o vuelve a conectar una conexión que apunta a un paso inexistente.";
+  if (error.includes("requires one or two distinct conditional edges"))
+    return "Conecta al menos una salida de la condición, sin repetir Cumple o No cumple.";
+  if (error.includes("cannot have outgoing edges"))
+    return "El paso Final no puede tener conexiones de salida.";
+  if (error.includes("requires one next edge"))
+    return "Conecta la salida principal de este paso.";
+  if (error === "Flow contains a cycle")
+    return "Elimina el ciclo: un paso no puede volver a un paso anterior.";
+  if (error === "Flow contains unreachable nodes")
+    return "Conecta o elimina los pasos que no se pueden alcanzar desde Inicio.";
+  if (error === "Flow must have a reachable survey")
+    return "Conecta al menos una Encuesta alcanzable desde Inicio.";
+  if (error === "Flow must have a reachable survey with an answerable field")
+    return "Añade una pregunta respondible a una Encuesta alcanzable.";
+  if (error === "Flow must have a reachable terminal action")
+    return "Conecta un paso Final alcanzable desde Inicio.";
+  return error;
 }

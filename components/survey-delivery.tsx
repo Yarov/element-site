@@ -1,8 +1,14 @@
 "use client";
 
 import { Check, Sparkles, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { SurveyField, SurveyFlow, SurveyNode } from "@/lib/surveys/model";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import type {
+  ActionNode,
+  SurveyField,
+  SurveyFlow,
+  SurveyNode,
+} from "@/lib/surveys/model";
 import { getVisitCount } from "@/lib/marketing/client";
 import {
   getVisitorSignals,
@@ -20,7 +26,9 @@ import {
 type ActiveSurvey = { id: string; flow: SurveyFlow };
 
 export function SurveyDelivery() {
+  const pathname = usePathname();
   const [active, setActive] = useState<SelectedSurvey | null>(null);
+  const [flows, setFlows] = useState<ActiveSurvey[]>([]);
   const [answers, setAnswers] = useState<Record<string, string | number>>({});
   const [submitted, setSubmitted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -30,6 +38,7 @@ export function SurveyDelivery() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const selectedFlowId = useRef<string | null>(null);
 
   useEffect(() => {
     if (window.location.pathname.startsWith("/admin")) return;
@@ -38,29 +47,20 @@ export function SurveyDelivery() {
     );
     const isPreview = Boolean(previewId);
 
-    function display(flows: ActiveSurvey[]) {
+    function displayPreview(flows: ActiveSurvey[]) {
       const previewFlow = flows[0];
       const previewSurvey = previewFlow?.flow.nodes.find(
         (node): node is SurveyNode => node.type === "survey",
       );
-      const match = isPreview
-        ? previewFlow && previewSurvey
-          ? { ...previewFlow, survey: previewSurvey }
-          : null
-        : selectEligibleSurvey(
-            flows,
-            getVisitorSignals(getVisitCount(), window.location.pathname),
-            Date.now(),
-            wasShownThisSession,
-          );
+      const action = previewFlow?.flow.nodes.find(
+        (node): node is ActionNode => node.type === "action",
+      );
+      const match = previewFlow && previewSurvey
+        ? { ...previewFlow, survey: previewSurvey, ...(action ? { action } : {}) }
+        : null;
       if (match) {
-        if (!isPreview) {
-          // Persist before rendering so a reload cannot show the same flow again.
-          recordFlowShown(match.id);
-          markShownThisSession(match.id);
-        }
         setActive(match);
-        setPreview(isPreview);
+        setPreview(true);
       }
     }
 
@@ -72,7 +72,7 @@ export function SurveyDelivery() {
             return;
           }
           const data = (await response.json()) as { flow: ActiveSurvey };
-          display([data.flow]);
+          displayPreview([data.flow]);
         })
         .catch(() =>
           setPreviewError("No se pudo cargar esta encuesta de prueba."),
@@ -82,9 +82,44 @@ export function SurveyDelivery() {
 
     void fetch("/api/surveys/active").then(async (response) => {
       if (!response.ok) return;
-      display(((await response.json()) as { flows: ActiveSurvey[] }).flows);
+      setFlows(((await response.json()) as { flows: ActiveSurvey[] }).flows);
     });
   }, []);
+
+  useEffect(() => {
+    if (pathname.startsWith("/admin")) {
+      setActive(null);
+      return;
+    }
+    if (!flows.length || preview) return;
+
+    const match = selectEligibleSurvey(
+      flows,
+      getVisitorSignals(getVisitCount(), pathname),
+      Date.now(),
+      wasShownThisSession,
+    );
+    if (!match) {
+      setActive(null);
+      return;
+    }
+
+    // Persist before rendering so a reload or client-side navigation cannot reshow it.
+    recordFlowShown(match.id);
+    markShownThisSession(match.id);
+    if (selectedFlowId.current !== match.id) {
+      selectedFlowId.current = match.id;
+      setAnswers({});
+      setStep(0);
+      setSubmitted(false);
+      setDismissed(false);
+      setPreview(false);
+      setSubmissionError(null);
+      setShowRequiredMessage(false);
+      setIsSubmitting(false);
+    }
+    setActive(match);
+  }, [flows, pathname, preview]);
 
   if (previewError)
     return (
@@ -101,9 +136,9 @@ export function SurveyDelivery() {
 
   const activeSurvey = active;
   const survey = activeSurvey.survey;
-  const fields = ((survey?.config.fields as SurveyField[] | undefined) ?? []).filter(
-    (field) => field.kind !== "cta",
-  );
+  const fields = (
+    (survey?.config.fields as SurveyField[] | undefined) ?? []
+  ).filter((field) => field.kind !== "cta");
   const field = fields[step];
   const isFinalStep = fields.length === 0 || step === fields.length - 1;
   const progress = fields.length ? ((step + 1) / fields.length) * 100 : 0;
@@ -139,25 +174,32 @@ export function SurveyDelivery() {
 
     if (preview) return setSubmitted(true);
 
+    const submittingFlowId = activeSurvey.id;
     setSubmissionError(null);
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/surveys/${activeSurvey.id}/responses`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers }),
-      });
+      const response = await fetch(
+        `/api/surveys/${activeSurvey.id}/responses`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ answers }),
+        },
+      );
       if (response.ok) {
-        recordFlowCompleted(activeSurvey.id);
+        recordFlowCompleted(submittingFlowId);
+        if (selectedFlowId.current !== submittingFlowId) return;
         setSubmitted(true);
         return;
       }
+      if (selectedFlowId.current !== submittingFlowId) return;
       setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
     } catch {
+      if (selectedFlowId.current !== submittingFlowId) return;
       setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
     } finally {
-      setIsSubmitting(false);
+      if (selectedFlowId.current === submittingFlowId) setIsSubmitting(false);
     }
   }
 
@@ -187,7 +229,7 @@ export function SurveyDelivery() {
               <h2 className="mt-3 font-serif text-3xl text-foreground">
                 {preview
                   ? "Así se verá para tus visitantes"
-                  : "Tu opinión nos ayuda a mejorar"}
+                  : String(activeSurvey.action?.config.message ?? "Tu opinión nos ayuda a mejorar")}
               </h2>
               <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
                 {preview
@@ -242,7 +284,9 @@ export function SurveyDelivery() {
 
               <div className="mt-6 h-px bg-border" />
               <div className="mt-4 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
-                <span>Pregunta {fields.length ? step + 1 : 0} de {fields.length}</span>
+                <span>
+                  Pregunta {fields.length ? step + 1 : 0} de {fields.length}
+                </span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="mt-2 h-1 overflow-hidden rounded-full bg-secondary">
@@ -260,7 +304,9 @@ export function SurveyDelivery() {
                     </span>
                     <span>
                       {field.label}
-                      {field.required && <span className="ml-1 text-primary">*</span>}
+                      {field.required && (
+                        <span className="ml-1 text-primary">*</span>
+                      )}
                     </span>
                   </legend>
                   {field.kind === "rating" ? (
@@ -290,7 +336,9 @@ export function SurveyDelivery() {
                             className={`flex min-h-12 items-center justify-between rounded-lg border px-4 text-left text-sm transition ${selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-secondary/30 text-muted-foreground hover:border-primary/60 hover:text-foreground"}`}
                           >
                             {option}
-                            <span className={`size-4 rounded-full border ${selected ? "border-primary bg-primary" : "border-muted-foreground"}`} />
+                            <span
+                              className={`size-4 rounded-full border ${selected ? "border-primary bg-primary" : "border-muted-foreground"}`}
+                            />
                           </button>
                         );
                       })}
@@ -299,7 +347,10 @@ export function SurveyDelivery() {
                     <textarea
                       value={String(answers[field.id] ?? "")}
                       onChange={(event) => {
-                        setAnswers((current) => ({ ...current, [field.id]: event.target.value }));
+                        setAnswers((current) => ({
+                          ...current,
+                          [field.id]: event.target.value,
+                        }));
                         setShowRequiredMessage(false);
                       }}
                       placeholder="Comparte tu respuesta..."
@@ -343,7 +394,11 @@ export function SurveyDelivery() {
                     disabled={isSubmitting}
                     className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isFinalStep ? (isSubmitting ? "Enviando..." : "Enviar respuesta") : "Siguiente"}
+                    {isFinalStep
+                      ? isSubmitting
+                        ? "Enviando..."
+                        : "Enviar respuesta"
+                      : "Siguiente"}
                   </button>
                 </div>
               </div>

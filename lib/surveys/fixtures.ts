@@ -70,7 +70,7 @@ export function createStarterFlow(): SurveyFlow {
         id: triggerId,
         type: "trigger",
         label: "Visitante recurrente",
-        config: { visitCount: 3, pagePath: "/" },
+        config: { visitCount: 3, pagePaths: ["/"] },
         position: { x: 100, y: 170 },
       },
       {

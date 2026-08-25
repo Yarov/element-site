@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { admitResponse, validateFlow } from "../schema";
 import { createStarterFlow, seedFlow } from "../fixtures";
+import { PUBLIC_ROUTE_PATHS } from "@/lib/public-routes";
 
 function responseFlow() {
   return {
@@ -41,6 +42,74 @@ function responseFlow() {
 describe("survey flow validation", () => {
   it("creates a valid starter flow", () => {
     expect(validateFlow(createStarterFlow()).success).toBe(true);
+  });
+
+  it("accepts explicit all and selected target modes alongside legacy triggers", () => {
+    const trigger = seedFlow.nodes[0];
+    const selected = {
+      ...seedFlow,
+      nodes: [
+        {
+          ...trigger,
+          config: {
+            targetMode: "selected",
+            pagePaths: [PUBLIC_ROUTE_PATHS[0], PUBLIC_ROUTE_PATHS[1]],
+          },
+        },
+        ...seedFlow.nodes.slice(1),
+      ],
+    };
+    const all = {
+      ...seedFlow,
+      nodes: [
+        { ...trigger, config: { targetMode: "all" } },
+        ...seedFlow.nodes.slice(1),
+      ],
+    };
+    const legacy = {
+      ...seedFlow,
+      nodes: [
+        { ...trigger, config: { pagePaths: [PUBLIC_ROUTE_PATHS[0]] } },
+        ...seedFlow.nodes.slice(1),
+      ],
+    };
+
+    expect(validateFlow(selected).success).toBe(true);
+    expect(validateFlow(all).success).toBe(true);
+    expect(validateFlow(legacy).success).toBe(true);
+  });
+
+  it("requires unique public paths only for explicit selected targeting", () => {
+    const trigger = seedFlow.nodes[0];
+    for (const pagePaths of [[], ["/", "/"], ["/not-a-public-route"]]) {
+      expect(
+        validateFlow({
+          ...seedFlow,
+          nodes: [
+            { ...trigger, config: { targetMode: "selected", pagePaths } },
+            ...seedFlow.nodes.slice(1),
+          ],
+        }).success,
+      ).toBe(false);
+    }
+    expect(
+      validateFlow({
+        ...seedFlow,
+        nodes: [
+          { ...trigger, config: { targetMode: "selected" } },
+          ...seedFlow.nodes.slice(1),
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      validateFlow({
+        ...seedFlow,
+        nodes: [
+          { ...trigger, config: { targetMode: "all", pagePaths: ["/"] } },
+          ...seedFlow.nodes.slice(1),
+        ],
+      }).success,
+    ).toBe(false);
   });
 
   it("requires a reachable required text field and terminal action", () => {

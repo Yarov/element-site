@@ -13,6 +13,7 @@ import {
   buildServiceArea,
 } from "../schema"
 import { services } from "../data"
+import { PUBLIC_ROUTE_PATHS } from "../public-routes"
 
 const root = resolve(__dirname, "../..")
 const read = (file: string) => readFileSync(resolve(root, file), "utf8")
@@ -110,9 +111,10 @@ describe("schema readiness", () => {
     const sitemap = read("app/sitemap.ts")
     const llms = read("app/llms.txt/route.ts")
     for (const slug of ["privacidad-seguridad-y-reservas", "aviso-de-privacidad"]) {
-      expect(sitemap).toContain(slug)
+      expect(PUBLIC_ROUTE_PATHS).toContain(`/${slug}`)
       expect(llms).toContain(slug)
     }
+    expect(sitemap).toContain("PUBLIC_ROUTES")
   })
 
   it("keeps llms.txt factual and privacy-safe", () => {

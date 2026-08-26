@@ -20,6 +20,7 @@ import {
 import { CampaignFlow } from "@/components/marketing-admin/campaign-flow";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useUnsavedChangesWarning } from "@/lib/use-unsaved-changes-warning";
 import { toast } from "sonner";
 import { campaignExamples, newCampaign } from "@/lib/marketing/fixtures";
 import {
@@ -46,6 +47,45 @@ const slots: MarketingComponent["slot"][] = [
   "service.cta",
 ];
 
+type MarketingQuestionKind = "text" | "rating" | "choice";
+export type MarketingQuestion = {
+  id: string;
+  label: string;
+  kind: MarketingQuestionKind;
+  required?: boolean;
+  options?: string[];
+};
+
+export function ensureQuestion(question: MarketingQuestion): MarketingQuestion {
+  return {
+    ...question,
+    options:
+      question.kind === "choice"
+        ? Array.from(
+            new Set(
+              (question.options ?? []).map((option) => option.trim()).filter(
+                Boolean,
+              ),
+            ),
+          )
+        : undefined,
+  };
+}
+
+export function defaultQuestion(kind: MarketingQuestionKind): MarketingQuestion {
+  return {
+    id: crypto.randomUUID(),
+    label:
+      kind === "rating"
+        ? "¿Qué tan probable es que reserves?"
+        : kind === "choice"
+          ? "¿Qué te interesa explorar?"
+          : "¿Qué te gustaría compartir?",
+    kind,
+    ...(kind === "choice" ? { options: ["Relajación", "Sensorial"] } : {}),
+  };
+}
+
 export function MarketingAdminApp() {
   const [campaigns, setCampaigns] = useState<StoredCampaign[]>([]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -53,6 +93,8 @@ export function MarketingAdminApp() {
   const [status, setStatus] = useState("Cargando campañas...");
   const [view, setView] = useState<"editor" | "preview">("editor");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  useUnsavedChangesWarning(dirty);
 
   useEffect(() => {
     void fetch("/api/admin/campaigns")
@@ -83,6 +125,7 @@ export function MarketingAdminApp() {
     setServerId(item.id);
     setStatus(`Editando ${item.name}`);
     setView("editor");
+    setDirty(false);
   }
 
   function update(updater: (current: Campaign) => Campaign) {
@@ -92,6 +135,7 @@ export function MarketingAdminApp() {
         : current,
     );
     setStatus("Cambios sin guardar");
+    setDirty(true);
   }
 
   function updateComponent(patch: Partial<MarketingComponent>) {
@@ -101,6 +145,31 @@ export function MarketingAdminApp() {
         index === 0 ? { ...item, ...patch } : item,
       ),
     }));
+  }
+
+  function updateQuestions(next: MarketingQuestion[]) {
+    updateComponent({ questions: next.map(ensureQuestion) });
+  }
+
+  function addQuestion(kind: MarketingQuestionKind) {
+    const current = component?.questions ?? [];
+    updateQuestions([...current, defaultQuestion(kind)]);
+  }
+
+  function patchQuestion(id: string, patch: Partial<MarketingQuestion>) {
+    const current = component?.questions ?? [];
+    updateQuestions(
+      current.map((question) =>
+        question.id === id
+          ? ensureQuestion({ ...question, ...patch, kind: patch.kind ?? question.kind })
+          : question,
+      ),
+    );
+  }
+
+  function removeQuestion(id: string) {
+    const current = component?.questions ?? [];
+    updateQuestions(current.filter((question) => question.id !== id));
   }
 
   async function create(definition = newCampaign()) {
@@ -148,6 +217,7 @@ export function MarketingAdminApp() {
             : item,
         ),
       );
+      setDirty(false);
       setStatus(
         nextStatus === "published" ? "Campaña publicada" : "Borrador guardado",
       );
@@ -367,6 +437,9 @@ export function MarketingAdminApp() {
                           component={component}
                           update={update}
                           updateComponent={updateComponent}
+                          addQuestion={addQuestion}
+                          patchQuestion={patchQuestion}
+                          removeQuestion={removeQuestion}
                         />
                       ) : (
                         <CampaignPreview
@@ -430,11 +503,17 @@ function CampaignEditor({
   component,
   update,
   updateComponent,
+  addQuestion,
+  patchQuestion,
+  removeQuestion,
 }: {
   campaign: Campaign;
   component: MarketingComponent;
   update: (updater: (current: Campaign) => Campaign) => void;
   updateComponent: (patch: Partial<MarketingComponent>) => void;
+  addQuestion: (kind: MarketingQuestionKind) => void;
+  patchQuestion: (id: string, patch: Partial<MarketingQuestion>) => void;
+  removeQuestion: (id: string) => void;
 }) {
   return (
     <div className="space-y-7 p-5">
@@ -615,28 +694,130 @@ function CampaignEditor({
             </Field>
           )}
           {component.kind === "survey" && (
-            <Field label="Preguntas, una por línea">
-              <textarea
-                value={(component.questions ?? [])
-                  .map((question) => question.label)
-                  .join("\n")}
-                onChange={(event) =>
-                  updateComponent({
-                    questions: event.target.value
-                      .split("\n")
-                      .filter(Boolean)
-                      .map((label) => ({
-                        id: crypto.randomUUID(),
-                        label,
-                        kind: "text",
-                      })),
-                  })
-                }
-              />
-            </Field>
+            <SurveyQuestionEditor
+              questions={(component.questions ?? []) as MarketingQuestion[]}
+              onAdd={addQuestion}
+              onPatch={patchQuestion}
+              onRemove={removeQuestion}
+            />
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+function SurveyPreviewWizard({
+  title,
+  body,
+  ctaLabel,
+  questions,
+}: {
+  title: string;
+  body: string;
+  ctaLabel: string;
+  questions: MarketingQuestion[];
+}) {
+  const [step, setStep] = useState(0);
+  if (questions.length === 0) {
+    return (
+      <div className="p-7">
+        <p className="text-xs text-slate-400">Encuesta</p>
+        <h2 className="mt-2 text-xl font-semibold">{title}</h2>
+        <p className="mt-2 text-sm text-slate-500">{body}</p>
+        <p className="mt-6 rounded border border-dashed border-slate-200 p-4 text-xs text-slate-500">
+          Esta campaña aún no tiene preguntas.
+        </p>
+        <button
+          type="button"
+          className="mt-6 rounded bg-slate-950 px-4 py-2 text-sm font-medium text-white"
+        >
+          {ctaLabel}
+        </button>
+      </div>
+    );
+  }
+  const question = questions[step];
+  const isLast = step === questions.length - 1;
+  return (
+    <div className="p-7">
+      <p className="text-xs text-slate-400">Encuesta</p>
+      <h2 className="mt-2 text-xl font-semibold">{title}</h2>
+      <p className="mt-2 text-sm text-slate-500">{body}</p>
+      <div className="mt-4 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-slate-500">
+        <span>
+          Pregunta {step + 1} de {questions.length}
+        </span>
+      </div>
+      <div
+        className="mt-2 h-1 overflow-hidden rounded-full bg-slate-100"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(((step + 1) / questions.length) * 100)}
+        aria-label="Progreso de la encuesta"
+      >
+        <div
+          className="h-full bg-slate-900"
+          style={{ width: `${Math.round(((step + 1) / questions.length) * 100)}%` }}
+        />
+      </div>
+      <div className="mt-5">
+        <p className="text-sm font-medium">
+          {question.label}
+          {question.required && (
+            <span className="ml-1 text-rose-500">
+              * <span className="sr-only">(obligatorio)</span>
+            </span>
+          )}
+        </p>
+        {question.kind === "rating" ? (
+          <div className="mt-2 flex gap-2" aria-label={question.label}>
+            {[1, 2, 3, 4, 5].map((value) => (
+              <span
+                key={value}
+                className="grid size-9 place-items-center rounded-md bg-slate-100 text-sm text-slate-700"
+              >
+                {value}
+              </span>
+            ))}
+          </div>
+        ) : question.kind === "choice" ? (
+          <div className="mt-2 flex flex-wrap gap-2" aria-label={question.label}>
+            {(question.options ?? []).map((option) => (
+              <span
+                key={option}
+                className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-700"
+              >
+                {option}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <textarea
+            aria-label={question.label}
+            className="mt-2 min-h-20 w-full rounded-md border border-slate-200 p-3 text-sm"
+            placeholder="Escribe tu respuesta"
+          />
+        )}
+      </div>
+      <div className="mt-6 flex justify-between">
+        <button
+          type="button"
+          disabled={step === 0}
+          onClick={() => setStep((current) => Math.max(0, current - 1))}
+          className="rounded border border-slate-200 px-3 py-2 text-xs font-medium disabled:opacity-40"
+        >
+          Anterior
+        </button>
+        <button
+          type="button"
+          onClick={() => setStep((current) => Math.min(questions.length - 1, current + 1))}
+          className="rounded bg-slate-950 px-4 py-2 text-sm font-medium text-white"
+        >
+          {isLast ? ctaLabel : "Siguiente"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -671,23 +852,12 @@ function CampaignPreview({
             </button>
           </div>
         ) : component.kind === "survey" ? (
-          <div className="p-7">
-            <p className="text-xs text-slate-400">Encuesta</p>
-            <h2 className="mt-2 text-xl font-semibold">{component.title}</h2>
-            <p className="mt-2 text-sm text-slate-500">{component.body}</p>
-            {(component.questions ?? []).map((question) => (
-              <div key={question.id} className="mt-5">
-                <p className="text-sm font-medium">{question.label}</p>
-                <input
-                  className="mt-2 h-9 w-full rounded border border-slate-200 px-3"
-                  placeholder="Tu respuesta"
-                />
-              </div>
-            ))}
-            <button className="mt-6 rounded bg-slate-950 px-4 py-2 text-sm font-medium text-white">
-              {component.ctaLabel}
-            </button>
-          </div>
+          <SurveyPreviewWizard
+            title={component.title}
+            body={component.body}
+            ctaLabel={component.ctaLabel}
+            questions={(component.questions ?? []) as MarketingQuestion[]}
+          />
         ) : (
           <div className="p-6">
             <div
@@ -709,6 +879,149 @@ function CampaignPreview({
         Se muestra desde {campaign.audience.minVisits} visitas al publicar.
       </p>
     </div>
+  );
+}
+
+function SurveyQuestionEditor({
+  questions,
+  onAdd,
+  onPatch,
+  onRemove,
+}: {
+  questions: MarketingQuestion[];
+  onAdd: (kind: MarketingQuestionKind) => void;
+  onPatch: (id: string, patch: Partial<MarketingQuestion>) => void;
+  onRemove: (id: string) => void;
+}) {
+  const kinds: MarketingQuestionKind[] = ["text", "rating", "choice"];
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-semibold text-slate-700">Preguntas</p>
+        <p className="mt-1 text-xs text-slate-500">
+          Cada pregunta conserva su tipo y sus opciones aunque edites la etiqueta.
+        </p>
+      </div>
+      {questions.length === 0 && (
+        <p className="rounded-md border border-dashed border-slate-200 p-3 text-xs text-slate-500">
+          Aún no agregas preguntas.
+        </p>
+      )}
+      <div className="space-y-3">
+        {questions.map((question, index) => (
+          <div
+            key={question.id}
+            className="space-y-2 rounded-lg border border-slate-200 bg-white p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-500">
+                Pregunta {index + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemove(question.id)}
+                className="text-xs font-medium text-rose-600 hover:underline"
+              >
+                Eliminar
+              </button>
+            </div>
+            <label className="block text-xs font-medium text-slate-600">
+              Tipo
+              <select
+                value={question.kind}
+                onChange={(event) =>
+                  onPatch(question.id, {
+                    kind: event.target.value as MarketingQuestionKind,
+                  })
+                }
+                className="mt-1.5 h-9 w-full rounded border border-slate-200 bg-white px-2 text-sm"
+              >
+                {kinds.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {kind === "text"
+                      ? "Texto abierto"
+                      : kind === "rating"
+                        ? "Rating 1–5"
+                        : "Opción única"}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-xs font-medium text-slate-600">
+              Pregunta
+              <textarea
+                value={question.label}
+                onChange={(event) =>
+                  onPatch(question.id, { label: event.target.value })
+                }
+                className="mt-1.5 min-h-16 w-full rounded border border-slate-200 p-2 text-sm"
+              />
+            </label>
+            {question.kind === "choice" && (
+              <ChoiceOptionsField
+                options={question.options ?? []}
+                onChange={(options) => onPatch(question.id, { options })}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onAdd("text")}
+          className="rounded-md border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700"
+        >
+          + Texto
+        </button>
+        <button
+          type="button"
+          onClick={() => onAdd("rating")}
+          className="rounded-md border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700"
+        >
+          + Rating
+        </button>
+        <button
+          type="button"
+          onClick={() => onAdd("choice")}
+          className="rounded-md border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700"
+        >
+          + Opción única
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ChoiceOptionsField({
+  options,
+  onChange,
+}: {
+  options: string[];
+  onChange: (options: string[]) => void;
+}) {
+  const lines = options.join("\n");
+  return (
+    <label className="block text-xs font-medium text-slate-600">
+      Opciones, una por línea
+      <textarea
+        value={lines}
+        onChange={(event) =>
+          onChange(
+            Array.from(
+              new Set(
+                event.target.value
+                  .split("\n")
+                  .map((option) => option.trim())
+                  .filter(Boolean),
+              ),
+            ),
+          )
+        }
+        className="mt-1.5 min-h-20 w-full rounded border border-slate-200 p-2 text-sm"
+        placeholder="Relajación&#10;Sensorial&#10;Tántrico"
+      />
+    </label>
   );
 }
 

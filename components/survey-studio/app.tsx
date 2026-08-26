@@ -42,10 +42,12 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { toast } from "sonner";
 import { validateFlow } from "@/lib/surveys/schema";
+import { useUnsavedChangesWarning } from "@/lib/use-unsaved-changes-warning";
 import type { SurveyAnalytics } from "@/lib/surveys/analytics";
 import { demoSurveyAnalytics } from "@/lib/surveys/analytics-demo";
 import { locations, services } from "@/lib/data";
 import { PUBLIC_ROUTES } from "@/lib/public-routes";
+import { humanizeKind } from "@/lib/labels";
 import {
   Drawer,
   DrawerContent,
@@ -254,6 +256,8 @@ export function SurveyStudioApp() {
   const [activeTab, setActiveTab] = useState<StudioTab>(STUDIO_TABS.BUILD);
   const [stepEditorOpen, setStepEditorOpen] = useState(false);
   const [routePickerOpen, setRoutePickerOpen] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  useUnsavedChangesWarning(dirty);
   const [pendingDelete, setPendingDelete] = useState<"node" | "survey" | null>(
     null,
   );
@@ -319,6 +323,7 @@ export function SurveyStudioApp() {
     setServerId(item.id);
     setSelectedId(item.graph.nodes[0]?.id ?? null);
     setStepEditorOpen(false);
+    setDirty(false);
     setStatus(item.status === "published" ? "Publicada" : "Borrador guardado");
   }
   function mutate(updater: (current: SurveyFlow) => SurveyFlow) {
@@ -328,6 +333,7 @@ export function SurveyStudioApp() {
         : current,
     );
     setStatus("Cambios sin guardar");
+    setDirty(true);
   }
   function updateNode(id: string, patch: Partial<WorkflowNode>) {
     mutate((current) => ({
@@ -486,6 +492,7 @@ export function SurveyStudioApp() {
       current.map((item) => (item.id === serverId ? saved : item)),
     );
     setFlow(saved.graph);
+    setDirty(false);
     setStatus(
       saved.status === "published"
         ? "Encuesta publicada"
@@ -640,16 +647,21 @@ export function SurveyStudioApp() {
         </aside>
         <section className="flex min-h-[650px] min-w-0 flex-col bg-slate-50">
           <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="inline-flex w-fit rounded-lg bg-slate-100 p-1 text-sm font-medium">
+<div className="inline-flex w-fit rounded-lg bg-slate-100 p-1 text-sm font-medium">
               {(
                 [
                   [STUDIO_TABS.BUILD, "Construir"],
-                  [STUDIO_TABS.DATA, "Datos"],
+                  [STUDIO_TABS.AUDIENCE, "Distribución"],
+                  [STUDIO_TABS.SIMULATE, "Probar"],
+                  [STUDIO_TABS.REVIEW, "Revisar"],
+                  [STUDIO_TABS.DATA, "Resultados"],
                 ] as const
               ).map(([tab, label]) => (
                 <button
                   key={tab}
                   type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab}
                   onClick={() => setActiveTab(tab)}
                   className={`rounded-md px-3 py-1.5 transition ${activeTab === tab ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
                 >
@@ -658,11 +670,17 @@ export function SurveyStudioApp() {
               ))}
             </div>
             <p className="text-xs text-slate-500">
-               {activeTab === STUDIO_TABS.BUILD
-                 ? "Diseña la encuesta y define su aparición desde Inicio"
-                 : "Resultados de la encuesta seleccionada"}
-             </p>
-           </div>
+              {activeTab === STUDIO_TABS.BUILD
+                ? "Diseña la encuesta y define su aparición desde Inicio."
+                : activeTab === STUDIO_TABS.AUDIENCE
+                  ? "Define cuándo y dónde aparece la encuesta."
+                  : activeTab === STUDIO_TABS.SIMULATE
+                    ? "Simula señales del visitor antes de publicar."
+                    : activeTab === STUDIO_TABS.REVIEW
+                      ? "Revisa los pasos pendientes antes de publicar."
+                      : "Resultados de la encuesta seleccionada."}
+            </p>
+            </div>
            {activeTab === STUDIO_TABS.BUILD &&
             (flow ? (
               <div className="min-h-0 flex-1">
@@ -721,6 +739,37 @@ export function SurveyStudioApp() {
           {activeTab === STUDIO_TABS.DATA && (
             <div className="overflow-y-auto p-4 sm:p-6">
               <AnalyticsPanel flow={flow} serverId={serverId} />
+            </div>
+          )}
+          {activeTab === STUDIO_TABS.AUDIENCE && (
+            <div className="overflow-y-auto p-4 sm:p-6">
+              <DeliveryPanel
+                flow={flow}
+                mutate={mutate}
+                onChoosePages={() => setRoutePickerOpen(true)}
+              />
+            </div>
+          )}
+          {activeTab === STUDIO_TABS.SIMULATE && flow && (
+            <div className="overflow-y-auto p-4 sm:p-6">
+              <TestingPanel
+                flow={flow}
+                serverId={serverId}
+                result={flow ? evaluateFlow(flow, previewSignals, previewNow) : null}
+                signals={previewSignals}
+                setSignals={setPreviewSignals}
+                previewNow={previewNow}
+                refreshNow={() => setPreviewNow(Date.now())}
+              />
+            </div>
+          )}
+          {activeTab === STUDIO_TABS.REVIEW && flow && (
+            <div className="overflow-y-auto p-4 sm:p-6">
+              <ReviewPanel
+                flow={flow}
+                onNavigate={(tab) => setActiveTab(tab)}
+                onPublish={() => void save("published")}
+              />
             </div>
           )}
         </section>
@@ -997,12 +1046,10 @@ function RoutePickerDialog({
 
 function ReviewPanel({
   flow,
-  result,
   onNavigate,
   onPublish,
 }: {
   flow: SurveyFlow | null;
-  result: ReturnType<typeof evaluateFlow> | null;
   onNavigate: (tab: StudioTab) => void;
   onPublish: () => void;
 }) {
@@ -1014,7 +1061,6 @@ function ReviewPanel({
     { label: "Distribución definida", detail: trigger ? "Páginas y visitas listas" : "Falta el inicio", tab: STUDIO_TABS.AUDIENCE, ready: Boolean(trigger) },
     { label: "Preguntas para visitantes", detail: fields.length ? `${fields.length} preguntas configuradas` : "Añade al menos una pregunta", tab: STUDIO_TABS.BUILD, ready: fields.length > 0 },
     { label: "Recorrido completo", detail: validation.success ? "Todas las conexiones son válidas" : describeValidationError(validation.error.issues[0]?.message ?? ""), tab: STUDIO_TABS.BUILD, ready: validation.success },
-    { label: "Simulación", detail: result?.matched ? "El escenario actual es elegible" : "Comprueba un escenario antes de publicar", tab: STUDIO_TABS.SIMULATE, ready: Boolean(result?.matched) },
   ];
   return <section className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"><h2 className="text-xl font-semibold">Revisar y publicar</h2><p className="mt-2 text-sm text-slate-500">Comprueba la experiencia antes de mostrarla a visitantes reales.</p><div className="mt-6 space-y-3">{checks.map((check) => <button key={check.label} type="button" onClick={() => onNavigate(check.tab)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left hover:border-slate-400"><span className={check.ready ? "text-emerald-600" : "text-amber-600"}>{check.ready ? <CheckCircle2 className="size-5" /> : <CircleAlert className="size-5" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-slate-900">{check.label}</span><span className="mt-0.5 block text-xs text-slate-500">{check.detail}</span></span><span className="text-xs font-medium text-slate-500">Abrir</span></button>)}</div><button type="button" disabled={!validation.success} onClick={onPublish} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"><Send className="size-4" />{validation.success ? "Publicar encuesta" : "Corrige los puntos pendientes"}</button></section>;
 }
@@ -1255,17 +1301,13 @@ function AnalyticsContent({
     <div className="mt-5 space-y-4">
       <TotalResponses total={analytics.totalResponses} />
       <div className="grid gap-3 lg:grid-cols-2">
-        {analytics.questions.map((question) => (
+        {analytics.questions.map((question, index) => (
           <article
             key={question.id}
             className="rounded-xl border border-slate-200 bg-slate-50 p-4"
           >
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-              {question.kind === "rating"
-                ? "Rating"
-                : question.kind === "singleChoice"
-                  ? "Opción"
-                  : "Texto"}
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+              {humanizeKind(question.kind)} · Pregunta {index + 1}
             </p>
             <h3 className="mt-1 text-sm font-semibold text-slate-800">
               {question.label}
@@ -1547,11 +1589,29 @@ function NodeInspector({
               </p>
             )}
             {fields.map((field, index) => (
-              <div key={field.id} className={`flex rounded border transition ${selectedField?.id === field.id ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-400"}`}>
+              <div
+                key={field.id}
+                draggable
+                onDragStart={(event) => event.dataTransfer.setData("text/plain", field.id)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const sourceId = event.dataTransfer.getData("text/plain");
+                  if (!sourceId || sourceId === field.id) return;
+                  const targetIndex = fields.findIndex((candidate) => candidate.id === field.id);
+                  const sourceIndex = fields.findIndex((candidate) => candidate.id === sourceId);
+                  if (sourceIndex === -1 || targetIndex === -1) return;
+                  const reordered = [...fields];
+                  const [moved] = reordered.splice(sourceIndex, 1);
+                  reordered.splice(targetIndex, 0, moved);
+                  updateNode(node.id, { config: { ...node.config, fields: reordered } });
+                }}
+                className={`flex rounded border transition ${selectedField?.id === field.id ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-400"}`}
+              >
                 <button type="button" onClick={() => setSelectedFieldId(field.id)} className="min-w-0 flex-1 p-3 text-left">
-                  <span className="text-xs text-slate-400">Pregunta {index + 1}</span>
+                  <span className="text-xs text-slate-500">Pregunta {index + 1}</span>
                   <p className="mt-1 truncate text-sm font-medium">{field.label}</p>
-                  <p className="mt-1 text-xs text-slate-400">{field.kind}</p>
+                  <p className="mt-1 text-xs text-slate-500">{humanizeKind(field.kind)}</p>
                 </button>
                 <div className="flex flex-col justify-center border-l border-slate-200 px-1">
                   <button type="button" aria-label={`Subir pregunta ${index + 1}`} disabled={index === 0} onClick={() => moveField(field.id, -1)} className="px-2 py-1 text-xs text-slate-500 disabled:opacity-30">↑</button>
@@ -1569,15 +1629,28 @@ function NodeInspector({
                 Tipo
                 <select
                   value={selectedField.kind}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const nextKind = event.target.value as SurveyField["kind"];
+                    const previousKind = selectedField.kind;
+                    if (previousKind !== nextKind) {
+                      const replacingOptions =
+                        previousKind === "singleChoice" && nextKind !== "singleChoice" &&
+                        (selectedField.options ?? []).length > 0;
+                      if (replacingOptions) {
+                        const ok = window.confirm(
+                          "Cambiar el tipo reemplazará las opciones. ¿Continuar?",
+                        );
+                        if (!ok) return;
+                      }
+                    }
                     updateField(selectedField.id, {
-                      kind: event.target.value as SurveyField["kind"],
+                      kind: nextKind,
                       options:
-                        event.target.value === "singleChoice"
+                        nextKind === "singleChoice"
                           ? (selectedField.options ?? ["Opción 1", "Opción 2"])
                           : undefined,
-                    })
-                  }
+                    });
+                  }}
                   className="mt-1.5 h-9 w-full rounded border border-slate-200 bg-white px-2 text-sm"
                 >
                   <option value="text">Texto abierto</option>

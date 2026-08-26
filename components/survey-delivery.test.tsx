@@ -160,8 +160,9 @@ describe("SurveyDelivery", () => {
     ]);
 
     expect(container.textContent).toContain("Pregunta 1 de 2");
-    click("Siguiente");
-    expect(container.textContent).toContain("Esta pregunta es obligatoria");
+    expect(button("Siguiente").disabled).toBe(true);
+    enterText("Gran visita");
+    expect(button("Siguiente").disabled).toBe(false);
 
     enterText("Gran visita");
     click("Siguiente");
@@ -405,5 +406,46 @@ describe("SurveyDelivery", () => {
     expect(container.textContent).toContain("Encuesta Blog");
     expect(container.textContent).not.toContain("Gracias por compartir");
     expect(container.querySelector("form")).not.toBeNull();
+  });
+
+  it("exposes rating buttons as a radiogroup with accessible names", async () => {
+    await renderFlows([
+      {
+        id: "rating-flow",
+        flow: {
+          ...flowWithFields([
+            {
+              id: "rating",
+              kind: "rating" as const,
+              label: "Califica tu visita",
+              required: true,
+            },
+          ]),
+        },
+      },
+    ]);
+
+    const group = container.querySelector('[role="radiogroup"]');
+    expect(group?.getAttribute("aria-label")).toBe("Califica tu visita");
+    const radios = container.querySelectorAll('[role="radio"]');
+    expect(radios).toHaveLength(5);
+    expect(radios[0]?.getAttribute("aria-label")).toBe("Calificación 1 de 5");
+  });
+
+  it("asks for confirmation before discarding a partially answered survey", async () => {
+    await renderFlows([
+      {
+        id: "review-flow",
+        flow: flowForPath("review-flow", "Encuesta", "/"),
+      },
+    ]);
+
+    enterText("A medio camino");
+    clickByLabel("Cerrar encuesta");
+
+    expect(container.textContent).toContain("¿Cerrar sin enviar?");
+    click("Sí, cerrar");
+    expect(container.textContent).not.toContain("¿Cerrar sin enviar?");
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
 });

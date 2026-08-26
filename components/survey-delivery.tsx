@@ -38,7 +38,10 @@ export function SurveyDelivery() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmDismiss, setConfirmDismiss] = useState(false);
   const selectedFlowId = useRef<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (window.location.pathname.startsWith("/admin")) return;
@@ -127,27 +130,34 @@ export function SurveyDelivery() {
     setActive(match);
   }, [flows, pathname, preview]);
 
-  if (previewError)
-    return (
-      <div className="fixed inset-0 z-100 grid place-items-center bg-black/80 p-4 backdrop-blur-sm">
-        <div className="w-full max-w-md rounded-xl border border-primary/25 bg-card p-6 text-center shadow-2xl">
-          <p className="text-sm font-medium text-foreground">{previewError}</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Regresa a Survey Studio, recarga la encuesta e inténtalo de nuevo.
-          </p>
-        </div>
-      </div>
-    );
-  if (!active || dismissed) return null;
-
-  const activeSurvey = active;
-  const survey = activeSurvey.survey;
+  const activeSurvey = active as SelectedSurvey;
+  const survey = activeSurvey?.survey;
   const fields = (
     (survey?.config.fields as SurveyField[] | undefined) ?? []
   ).filter((field) => field.kind !== "cta");
   const field = fields[step];
   const isFinalStep = fields.length === 0 || step === fields.length - 1;
-  const progress = fields.length ? ((step + 1) / fields.length) * 100 : 0;
+  const progress = fields.length
+    ? Math.min(99, Math.round(((step + 1) / fields.length) * 100))
+    : 0;
+
+  useEffect(() => {
+    if (active) closeButtonRef.current?.focus();
+  }, [active?.id]);
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        if (confirmDismiss) {
+          setConfirmDismiss(false);
+        } else if (!submitted) {
+          handleDismissRequest();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   function hasAnswer(field: SurveyField) {
     const answer = answers[field.id];
@@ -177,10 +187,32 @@ export function SurveyDelivery() {
     if (!isFinalStep) setStep((current) => current + 1);
   }
 
+  function handleDismissRequest() {
+    const hasPartialAnswers = Object.keys(answers).length > 0;
+    if (hasPartialAnswers && !preview && active) {
+      setConfirmDismiss(true);
+    } else {
+      dismiss();
+    }
+  }
+
+  if (previewError)
+    return (
+      <div className="fixed inset-0 z-100 grid place-items-center bg-black/80 p-4 backdrop-blur-sm">
+        <div className="w-full max-w-md rounded-xl border border-primary/25 bg-card p-6 text-center shadow-2xl">
+          <p className="text-sm font-medium text-foreground">{previewError}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Regresa a Survey Studio, recarga la encuesta e inténtalo de nuevo.
+          </p>
+        </div>
+      </div>
+    );
+  if (!active || dismissed) return null;
+
   async function submit() {
     if (!validateCurrentStep() || isSubmitting) return;
 
-    if (preview) return setSubmitted(true);
+    if (preview || fields.length === 0) return setSubmitted(true);
 
     const submittingFlowId = activeSurvey.id;
     setSubmissionError(null);
@@ -212,10 +244,10 @@ export function SurveyDelivery() {
         return;
       }
       if (selectedFlowId.current !== submittingFlowId) return;
-      setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
+      setSubmissionError("No pudimos guardar tu respuesta. Vuelve a intentarlo.");
     } catch {
       if (selectedFlowId.current !== submittingFlowId) return;
-      setSubmissionError("No pudimos guardar tu respuesta. Intenta de nuevo.");
+      setSubmissionError("No pudimos guardar tu respuesta. Vuelve a intentarlo.");
     } finally {
       if (selectedFlowId.current === submittingFlowId) setIsSubmitting(false);
     }
@@ -225,6 +257,7 @@ export function SurveyDelivery() {
     if (!preview)
       recordFlowDismissed(activeSurvey.id, Date.now(), activeSurvey.flow.id);
     setDismissed(true);
+    setConfirmDismiss(false);
   }
 
   return (
@@ -233,10 +266,41 @@ export function SurveyDelivery() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="survey-title"
+      ref={dialogRef}
     >
       <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-primary/25 bg-card shadow-2xl shadow-black/50">
         <div className="h-1 bg-primary" />
         <div className="p-5 sm:p-8">
+          {confirmDismiss && (
+            <div
+              role="alertdialog"
+              aria-labelledby="confirm-dismiss-title"
+              className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+            >
+              <p id="confirm-dismiss-title" className="font-semibold">
+                ¿Cerrar sin enviar?
+              </p>
+              <p className="mt-1">
+                Tienes respuestas sin enviar. Si cierras ahora no se guardarán.
+              </p>
+              <div className="mt-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDismiss(false)}
+                  className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900"
+                >
+                  Seguir respondiendo
+                </button>
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  Sí, cerrar
+                </button>
+              </div>
+            </div>
+          )}
           {submitted ? (
             <div className="py-8 text-center sm:py-12">
               <div className="mx-auto grid size-14 place-items-center rounded-full border border-primary/40 bg-primary/10 text-primary">
@@ -258,7 +322,20 @@ export function SurveyDelivery() {
               <button
                 type="button"
                 onClick={dismiss}
-                className="mt-7 rounded-full border border-primary/40 px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
+                className="mt-7 rounded-full border border-primary/40 bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+              >
+                Listo
+              </button>
+            </div>
+          ) : fields.length === 0 ? (
+            <div className="py-8 text-center">
+              <h2 className="font-serif text-2xl text-foreground">
+                {String(activeSurvey.action?.config.message ?? "Gracias por visitarnos.")}
+              </h2>
+              <button
+                type="button"
+                onClick={dismiss}
+                className="mt-6 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
               >
                 Cerrar
               </button>
@@ -287,9 +364,10 @@ export function SurveyDelivery() {
                 </div>
                 <button
                   type="button"
-                  onClick={dismiss}
+                  ref={closeButtonRef}
+                  onClick={handleDismissRequest}
                   aria-label="Cerrar encuesta"
-                  className="grid size-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition hover:border-primary/60 hover:text-primary"
+                  className="grid size-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition hover:border-primary/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <X className="size-4" />
                 </button>
@@ -306,9 +384,15 @@ export function SurveyDelivery() {
                 <span>
                   Pregunta {fields.length ? step + 1 : 0} de {fields.length}
                 </span>
-                <span>{Math.round(progress)}%</span>
               </div>
-              <div className="mt-2 h-1 overflow-hidden rounded-full bg-secondary">
+              <div
+                className="mt-2 h-1 overflow-hidden rounded-full bg-secondary"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress}
+                aria-label="Progreso de la encuesta"
+              >
                 <div
                   className="h-full rounded-full bg-primary transition-[width] duration-300"
                   style={{ width: `${progress}%` }}
@@ -324,35 +408,49 @@ export function SurveyDelivery() {
                     <span>
                       {field.label}
                       {field.required && (
-                        <span className="ml-1 text-primary">*</span>
+                        <span className="ml-1 text-primary">
+                          * <span className="sr-only">(obligatorio)</span>
+                        </span>
                       )}
                     </span>
                   </legend>
                   {field.kind === "rating" ? (
-                    <div className="mt-4 grid grid-cols-5 gap-2">
+                    <div
+                      role="radiogroup"
+                      aria-label={field.label}
+                      className="mt-4 grid grid-cols-5 gap-2"
+                    >
                       {[1, 2, 3, 4, 5].map((value) => (
                         <button
                           key={value}
                           type="button"
+                          role="radio"
+                          aria-checked={answers[field.id] === value}
+                          aria-label={`Calificación ${value} de 5`}
                           onClick={() => answerAndAdvance(value)}
-                          aria-pressed={answers[field.id] === value}
-                          className={`flex h-13 flex-col items-center justify-center rounded-lg border text-base font-medium transition ${answers[field.id] === value ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15" : "border-border bg-secondary/40 text-foreground hover:border-primary/60 hover:bg-primary/10"}`}
+                          className={`flex h-13 flex-col items-center justify-center rounded-lg border text-base font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${answers[field.id] === value ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15" : "border-border bg-secondary/40 text-foreground hover:border-primary/60 hover:bg-primary/10"}`}
                         >
                           {value}
                         </button>
                       ))}
                     </div>
                   ) : field.kind === "singleChoice" ? (
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    <div
+                      role="radiogroup"
+                      aria-label={field.label}
+                      className="mt-4 grid gap-2 sm:grid-cols-2"
+                    >
                       {(field.options ?? []).map((option) => {
                         const selected = answers[field.id] === option;
                         return (
                           <button
                             key={option}
                             type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            aria-label={option}
                             onClick={() => answerAndAdvance(option)}
-                            aria-pressed={selected}
-                            className={`flex min-h-12 items-center justify-between rounded-lg border px-4 text-left text-sm transition ${selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-secondary/30 text-muted-foreground hover:border-primary/60 hover:text-foreground"}`}
+                            className={`flex min-h-12 items-center justify-between rounded-lg border px-4 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-secondary/30 text-muted-foreground hover:border-primary/60 hover:text-foreground"}`}
                           >
                             {option}
                             <span
@@ -373,21 +471,40 @@ export function SurveyDelivery() {
                         setShowRequiredMessage(false);
                       }}
                       placeholder="Comparte tu respuesta..."
-                      className="mt-4 min-h-28 w-full resize-none rounded-lg border border-border bg-secondary/30 p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                      aria-label={field.label}
+                      aria-required={field.required}
+                      aria-describedby={
+                        showRequiredMessage ? `${field.id}-error` : undefined
+                      }
+                      className="mt-4 min-h-28 w-full resize-none rounded-lg border border-border bg-secondary/30 p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     />
                   )}
                 </fieldset>
               )}
 
               {showRequiredMessage && (
-                <p className="mt-5 text-sm text-primary" role="alert">
-                  Esta pregunta es obligatoria para continuar.
+                <p
+                  className="mt-5 text-sm text-primary"
+                  role="alert"
+                  id={`${field?.id ?? "field"}-error`}
+                >
+                  Esta pregunta es obligatoria.
                 </p>
               )}
               {submissionError && (
-                <p className="mt-5 text-sm text-destructive" role="alert">
-                  {submissionError}
-                </p>
+                <div className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+                  <span>{submissionError}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmissionError(null);
+                      void submit();
+                    }}
+                    className="rounded-md border border-destructive/50 px-3 py-1 text-xs font-semibold text-destructive"
+                  >
+                    Reintentar
+                  </button>
+                </div>
               )}
               <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
                 <p className="text-xs text-muted-foreground">
@@ -410,13 +527,22 @@ export function SurveyDelivery() {
                   <button
                     type={isFinalStep ? "submit" : "button"}
                     onClick={isFinalStep ? undefined : goNext}
-                    disabled={isSubmitting}
-                    className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={
+                      isSubmitting ||
+                      (!isFinalStep && field?.required && !hasAnswer(field))
+                    }
+                    aria-label={isFinalStep ? "Enviar respuesta" : "Ir a la siguiente pregunta"}
+                    title={
+                      !isFinalStep && field?.required && !hasAnswer(field)
+                        ? "Responde la pregunta para continuar"
+                        : undefined
+                    }
+                    className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     {isFinalStep
                       ? isSubmitting
                         ? "Enviando..."
-                        : "Enviar respuesta"
+                        : "Enviar"
                       : "Siguiente"}
                   </button>
                 </div>

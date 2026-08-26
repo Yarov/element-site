@@ -45,6 +45,19 @@ export async function POST(
     storedFlow.graph,
     storedFlow.status,
     body?.answers,
+    {
+      pathname: typeof body?.pathname === "string" ? body.pathname : undefined,
+      selectedServiceId:
+        typeof body?.selectedServiceId === "string"
+          ? body.selectedServiceId
+          : undefined,
+      selectedBranchId:
+        typeof body?.selectedBranchId === "string"
+          ? body.selectedBranchId
+          : undefined,
+      visitCount:
+        typeof body?.visitCount === "number" ? body.visitCount : undefined,
+    },
   );
   if (!admission.success)
     return NextResponse.json(

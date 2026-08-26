@@ -233,7 +233,12 @@ describe("SurveyDelivery", () => {
     expect(globalThis.fetch).toHaveBeenLastCalledWith(
       "/api/surveys/flow-1/responses",
       expect.objectContaining({
-        body: JSON.stringify({ answers: { service: "Masaje", rating: 5 } }),
+        body: expect.stringContaining(
+          JSON.stringify({ answers: { service: "Masaje", rating: 5 } }).slice(
+            0,
+            -1,
+          ),
+        ),
       }),
     );
     expect(
@@ -241,7 +246,9 @@ describe("SurveyDelivery", () => {
         window.localStorage.getItem(VISITOR_SIGNALS_STORAGE_KEY) ?? "{}",
       ),
     ).toMatchObject({
-      flows: { "flow-1": { completedAt: expect.any(Number) } },
+      flows: {
+        [seedFlow.id]: { completedAt: expect.any(Number) },
+      },
     });
   });
 

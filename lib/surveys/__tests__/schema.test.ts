@@ -132,6 +132,83 @@ describe("survey flow validation", () => {
 });
 
 describe("response admission", () => {
+  it("only requires fields reached through the visitor's branch", () => {
+    const branchedFlow = {
+      ...seedFlow,
+      nodes: [
+        seedFlow.nodes[0],
+        {
+          id: "branch",
+          type: "condition" as const,
+          label: "Sucursal",
+          config: {
+            kind: "selectedBranchId" as const,
+            operator: "equals" as const,
+            value: "condesa",
+          },
+        },
+        {
+          id: "condesa-survey",
+          type: "survey" as const,
+          label: "Condesa",
+          config: {
+            fields: [
+              {
+                id: "feedback-condesa",
+                kind: "text" as const,
+                label: "Comment",
+                required: true,
+              },
+            ],
+          },
+        },
+        {
+          id: "polanco-survey",
+          type: "survey" as const,
+          label: "Polanco",
+          config: {
+            fields: [
+              {
+                id: "feedback-polanco",
+                kind: "text" as const,
+                label: "Comment",
+                required: true,
+              },
+            ],
+          },
+        },
+        seedFlow.nodes[seedFlow.nodes.length - 1],
+      ],
+      edges: [
+        { from: seedFlow.nodes[0].id, to: "branch", outcome: "next" as const },
+        { from: "branch", to: "condesa-survey", outcome: "match" as const },
+        { from: "branch", to: "polanco-survey", outcome: "else" as const },
+        { from: "condesa-survey", to: seedFlow.nodes[seedFlow.nodes.length - 1].id, outcome: "next" as const },
+        { from: "polanco-survey", to: seedFlow.nodes[seedFlow.nodes.length - 1].id, outcome: "next" as const },
+      ],
+    };
+
+    expect(
+      admitResponse(branchedFlow, "published", { "feedback-condesa": "ok" }, {
+        selectedBranchId: "condesa",
+        visitCount: 3,
+      }),
+    ).toEqual({
+      success: true,
+      answers: { "feedback-condesa": "ok" },
+    });
+
+    expect(
+      admitResponse(branchedFlow, "published", { "feedback-polanco": "ok" }, {
+        selectedBranchId: "polanco",
+        visitCount: 3,
+      }),
+    ).toMatchObject({
+      success: true,
+      answers: { "feedback-polanco": "ok" },
+    });
+  });
+
   it("normalizes answers for a published valid flow", () => {
     expect(
       admitResponse(responseFlow(), "published", {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PUBLIC_ROUTE_PATHS } from "@/lib/public-routes";
 import type { SurveyField, SurveyFlow } from "./model";
+import { evaluateFlow } from "./evaluator";
 
 const fieldSchema = z.object({
   id: z.string().min(1),
@@ -156,9 +157,14 @@ export const persistedFlowSchema = z.object({
 });
 export const surveyFieldSchema = fieldSchema;
 
-export function validateFlow(flow: unknown) {
+export function validateFlow(flow: unknown, options: { strict?: boolean } = {}) {
+  const strict = options.strict ?? true;
   const result = flowSchema.safeParse(flow);
   if (!result.success) return result;
+
+  if (!strict) {
+    return { success: true as const, data: result.data as SurveyFlow };
+  }
 
   const graphError = validateGraph(result.data as SurveyFlow);
   if (graphError) {
@@ -201,6 +207,7 @@ export function admitResponse(
   flow: unknown,
   status: string,
   answers: unknown,
+  signals: { pathname?: string; selectedServiceId?: string; selectedBranchId?: string; visitCount?: number } = {},
 ): ResponseAdmission {
   if (status !== "published") {
     return responseFailure(
@@ -210,7 +217,7 @@ export function admitResponse(
     );
   }
 
-  const validFlow = validateFlow(flow);
+  const validFlow = validateFlow(flow, { strict: status === "published" });
   if (!validFlow.success) {
     return responseFailure(
       422,
@@ -226,6 +233,17 @@ export function admitResponse(
       "Answers must be an object",
     );
   }
+
+  const matchedSurveyId = evaluateFlow(
+    validFlow.data,
+    {
+      visitCount: signals.visitCount ?? 0,
+      pathname: signals.pathname ?? "/",
+      selectedServiceId: signals.selectedServiceId,
+      selectedBranchId: signals.selectedBranchId,
+    },
+    Date.now(),
+  ).survey?.id;
 
   const fields = validFlow.data.nodes.flatMap((node) =>
     node.type === "survey"
@@ -243,11 +261,36 @@ export function admitResponse(
   }
 
   const fieldsById = new Map(fields.map((field) => [field.id, field]));
+  const fieldsBySurvey = new Map<string, typeof fields>();
+  for (const node of validFlow.data.nodes) {
+    if (node.type !== "survey") continue;
+    const nodeFields = (
+      (node.config.fields as SurveyField[] | undefined) ?? []
+    ).filter((field) => field.kind !== "cta");
+    if (nodeFields.length)
+      fieldsBySurvey.set(node.id, [
+        ...(fieldsBySurvey.get(node.id) ?? []),
+        ...nodeFields,
+      ]);
+  }
+  const fieldsForMatchedSurvey = matchedSurveyId
+    ? fieldsBySurvey.get(matchedSurveyId) ?? []
+    : fields;
+  if (!fieldsForMatchedSurvey.length) {
+    return responseFailure(
+      422,
+      RESPONSE_ERROR_CODES.NO_ANSWERABLE_FIELDS,
+      "This survey has no answerable fields",
+    );
+  }
+  const fieldsByIdForChecks = new Map(
+    fieldsForMatchedSurvey.map((field) => [field.id, field]),
+  );
   const issues: string[] = [];
   const normalized: Record<string, string | number> = {};
 
   for (const [id, value] of Object.entries(answers)) {
-    const field = fieldsById.get(id);
+    const field = fieldsByIdForChecks.get(id);
     if (!field) {
       issues.push(`Unknown field: ${id}`);
       continue;
@@ -260,7 +303,7 @@ export function admitResponse(
     if (answer !== "") normalized[id] = answer;
   }
 
-  for (const field of fields) {
+  for (const field of fieldsForMatchedSurvey) {
     if (field.required && !(field.id in normalized)) {
       issues.push(`Missing required field: ${field.id}`);
     }

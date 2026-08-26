@@ -86,6 +86,10 @@ export function SurveyDelivery() {
     });
   }, []);
 
+  const [signals, setSignals] = useState<
+    ReturnType<typeof getVisitorSignals> | null
+  >(null);
+
   useEffect(() => {
     if (pathname.startsWith("/admin")) {
       setActive(null);
@@ -93,9 +97,11 @@ export function SurveyDelivery() {
     }
     if (!flows.length || preview) return;
 
+    const currentSignals = getVisitorSignals(getVisitCount(), pathname);
+    setSignals(currentSignals);
     const match = selectEligibleSurvey(
       flows,
-      getVisitorSignals(getVisitCount(), pathname),
+      currentSignals,
       Date.now(),
       wasShownThisSession,
     );
@@ -105,7 +111,7 @@ export function SurveyDelivery() {
     }
 
     // Persist before rendering so a reload or client-side navigation cannot reshow it.
-    recordFlowShown(match.id);
+    recordFlowShown(match.id, Date.now(), match.flow.id);
     markShownThisSession(match.id);
     if (selectedFlowId.current !== match.id) {
       selectedFlowId.current = match.id;
@@ -145,7 +151,9 @@ export function SurveyDelivery() {
 
   function hasAnswer(field: SurveyField) {
     const answer = answers[field.id];
-    return answer !== undefined && answer !== "";
+    if (answer === undefined || answer === null) return false;
+    if (typeof answer === "string") return answer.trim() !== "";
+    return true;
   }
 
   function validateCurrentStep() {
@@ -184,11 +192,21 @@ export function SurveyDelivery() {
         {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ answers }),
+          body: JSON.stringify({
+            answers,
+            pathname,
+            selectedServiceId: signals?.selectedServiceId,
+            selectedBranchId: signals?.selectedBranchId,
+            visitCount: signals?.visitCount,
+          }),
         },
       );
       if (response.ok) {
-        recordFlowCompleted(submittingFlowId);
+        recordFlowCompleted(
+          submittingFlowId,
+          Date.now(),
+          activeSurvey.flow.id,
+        );
         if (selectedFlowId.current !== submittingFlowId) return;
         setSubmitted(true);
         return;
@@ -204,7 +222,8 @@ export function SurveyDelivery() {
   }
 
   function dismiss() {
-    if (!preview) recordFlowDismissed(activeSurvey.id);
+    if (!preview)
+      recordFlowDismissed(activeSurvey.id, Date.now(), activeSurvey.flow.id);
     setDismissed(true);
   }
 

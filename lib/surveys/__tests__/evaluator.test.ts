@@ -54,6 +54,18 @@ describe("survey flow evaluator", () => {
     });
   });
 
+  it("activates immediately when the visit threshold is zero", () => {
+    const flow = {
+      ...seedFlow,
+      nodes: [
+        { ...seedFlow.nodes[0], config: { visitCount: 0 } },
+        ...seedFlow.nodes.slice(1),
+      ],
+    } as SurveyFlow;
+
+    expect(evaluateFlow(flow, { visitCount: 0 }).matched).toBe(true);
+  });
+
   it("preserves legacy visit and page-path behavior", () => {
     const flow = {
       ...seedFlow,

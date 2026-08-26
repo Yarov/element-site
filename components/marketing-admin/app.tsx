@@ -484,13 +484,14 @@ function CampaignEditor({
             <input
               type="number"
               min={1}
+              step={1}
               value={campaign.audience.minVisits}
               onChange={(event) =>
                 update((current) => ({
                   ...current,
                   audience: {
                     ...current.audience,
-                    minVisits: Number(event.target.value),
+                    minVisits: Math.max(1, Math.round(Number(event.target.value) || 1)),
                   },
                 }))
               }

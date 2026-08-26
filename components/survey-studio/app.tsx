@@ -858,7 +858,7 @@ function DeliveryPanel({
           </div>
         </div>
         <p className="mt-6 rounded-xl bg-white/10 px-4 py-3 text-sm text-white">
-          {targetMode === "all" ? "Se mostrará en cualquier página pública" : `Se mostrará en ${paths.length} ${paths.length === 1 ? "página seleccionada" : "páginas seleccionadas"}`} desde la visita {Math.max(1, Number(config.visitCount ?? 3))}.
+          {targetMode === "all" ? "Se mostrará en cualquier página pública" : `Se mostrará en ${paths.length} ${paths.length === 1 ? "página seleccionada" : "páginas seleccionadas"}`} después de {Math.max(0, Number(config.visitCount ?? 3))} visitas.
         </p>
       </div>
 
@@ -871,15 +871,20 @@ function DeliveryPanel({
             <div className="mt-2 flex items-center gap-3">
               <input
                 type="number"
-                min={1}
-                value={Math.max(1, Number(config.visitCount ?? 3))}
-                onChange={(event) => updateTrigger({ ...config, visitCount: Math.max(1, Number(event.target.value)) })}
+                step={1}
+                min={0}
+                value={Math.max(0, Math.round(Number(config.visitCount ?? 3)))}
+                onChange={(event) => updateTrigger({ ...config, visitCount: Math.max(0, Math.round(Number(event.target.value))) })}
                 className="h-11 w-24 rounded-lg border border-slate-200 px-3 text-sm"
               />
               <span className="text-sm text-slate-500">visitas acumuladas</span>
             </div>
           </label>
-          <p className="mt-3 text-xs leading-5 text-slate-500">Una persona será elegible a partir de su {Math.max(1, Number(config.visitCount ?? 3))}a visita.</p>
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            {Math.max(0, Number(config.visitCount ?? 3)) === 0
+              ? "La encuesta podrá aparecer desde la primera visita."
+              : `Una persona será elegible después de ${Math.max(0, Number(config.visitCount ?? 3))} visitas.`}
+          </p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -937,14 +942,22 @@ function RoutePickerDialog({
   const trigger = flow ? getTrigger(flow) : null;
   const config = (trigger?.config ?? {}) as TriggerConfig;
   const [query, setQuery] = useState("");
-  const paths = selectedPaths(config);
+  const [stagedPaths, setStagedPaths] = useState<string[]>(() =>
+    selectedPaths(config),
+  );
+  useEffect(() => {
+    if (open) setStagedPaths(selectedPaths(config));
+  }, [open, config]);
   const routes = PUBLIC_ROUTES.filter((route) => route.label.toLowerCase().includes(query.toLowerCase()) || route.path.includes(query));
-  const update = (pagePaths: string[]) => {
+  const commit = (pagePaths: string[]) => {
     if (!trigger) return;
     mutate((current) => ({
       ...current,
       nodes: current.nodes.map((node) => node.id === trigger.id ? { ...node, config: { visitCount: config.visitCount, targetMode: "selected", pagePaths } } : node),
     }));
+  };
+  const update = (pagePaths: string[]) => {
+    setStagedPaths(pagePaths);
   };
 
   return (
@@ -959,20 +972,23 @@ function RoutePickerDialog({
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre o ruta" className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400" />
             <button type="button" onClick={() => update(PUBLIC_ROUTES.map((route) => route.path))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium">Seleccionar todas</button>
           </div>
-          <p className="text-xs font-medium text-slate-500">{paths.length} {paths.length === 1 ? "página seleccionada" : "páginas seleccionadas"}</p>
+          <p className="text-xs font-medium text-slate-500">{stagedPaths.length} {stagedPaths.length === 1 ? "página seleccionada" : "páginas seleccionadas"}</p>
           <div className="max-h-[42vh] space-y-1 overflow-y-auto rounded-xl border border-slate-200 p-2">
             {routes.map((route) => {
-              const selected = paths.includes(route.path);
+              const selected = stagedPaths.includes(route.path);
               return (
                 <label key={route.path} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-slate-50">
-                  <input type="checkbox" checked={selected} onChange={() => update(selected ? paths.filter((path) => path !== route.path) : [...paths, route.path])} className="size-4 rounded border-slate-300" />
+                  <input type="checkbox" checked={selected} onChange={() => update(selected ? stagedPaths.filter((path) => path !== route.path) : [...stagedPaths, route.path])} className="size-4 rounded border-slate-300" />
                   <span className="min-w-0"><span className="block text-sm font-medium text-slate-800">{route.label}</span><span className="block truncate text-xs text-slate-500">{route.path}</span></span>
                 </label>
               );
             })}
           </div>
-          {paths.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Elige al menos una página o vuelve a “Cualquier página pública”.</p>}
-          <div className="flex justify-end"><button type="button" onClick={() => onOpenChange(false)} disabled={!paths.length} className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Confirmar páginas</button></div>
+          {stagedPaths.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Elige al menos una página o vuelve a “Cualquier página pública”.</p>}
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => { onOpenChange(false); }} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700">Cancelar</button>
+            <button type="button" onClick={() => { commit(stagedPaths); onOpenChange(false); }} disabled={!stagedPaths.length} className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Confirmar páginas</button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -1727,7 +1743,7 @@ function StartInspector({
       <label className="block text-xs font-medium text-slate-600">
         Mostrar después de
         <div className="mt-1.5 flex items-center gap-2">
-          <input type="number" min={1} value={Math.max(1, Number(config.visitCount ?? 3))} onChange={(event) => update({ ...config, visitCount: Math.max(1, Number(event.target.value)) })} className="h-9 w-20 rounded border border-slate-200 bg-white px-2 text-sm" />
+          <input type="number" step={1} min={0} value={Math.max(0, Math.round(Number(config.visitCount ?? 3)))} onChange={(event) => update({ ...config, visitCount: Math.max(0, Math.round(Number(event.target.value))) })} className="h-9 w-20 rounded border border-slate-200 bg-white px-2 text-sm" />
           <span className="text-sm font-normal text-slate-500">visitas</span>
         </div>
       </label>
@@ -1822,6 +1838,7 @@ function ConditionInspector({
                 : "Visitas mínimas"}
             <input
               type={config.kind === "pagePath" ? "text" : "number"}
+              step={config.kind === "cooldown" ? 1 : 1}
               min={config.kind === "pagePath" ? undefined : 0}
               value={
                 config.kind === "cooldown"
@@ -1836,8 +1853,10 @@ function ConditionInspector({
                       ? event.target.value
                       : Math.max(
                           config.kind === "cooldown" ? 1 : 0,
-                          Number(event.target.value) *
-                            (config.kind === "cooldown" ? 60_000 : 1),
+                          Math.round(
+                            Number(event.target.value) *
+                              (config.kind === "cooldown" ? 60_000 : 1),
+                          ),
                         ),
                 } as ConditionConfig)
               }
@@ -1956,12 +1975,13 @@ function TestingPanel({
           Visitas
           <input
             type="number"
+            step={1}
             min={0}
             value={signals.visitCount}
             onChange={(event) =>
               setSignals({
                 ...signals,
-                visitCount: Math.max(0, Number(event.target.value)),
+                visitCount: Math.max(0, Math.round(Number(event.target.value))),
               })
             }
             className="mt-1.5 h-9 w-full rounded border border-slate-200 px-3 text-sm"

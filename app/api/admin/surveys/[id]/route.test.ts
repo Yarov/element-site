@@ -60,4 +60,26 @@ describe("PATCH /api/admin/surveys/[id]", () => {
     expect(response.status).toBe(401);
     expect(set).not.toHaveBeenCalled();
   });
+
+  it("accepts an incomplete draft save without applying publish rules", async () => {
+    requireAdminApi.mockResolvedValueOnce(null);
+    returning.mockResolvedValueOnce([
+      { id, status: "draft", name: "Borrador", graph: seedFlow },
+    ]);
+
+    const incompleteFlow = {
+      ...seedFlow,
+      nodes: seedFlow.nodes.filter((node) => node.type !== "action"),
+    };
+
+    const response = await PATCH(
+      new Request(`https://example.com/api/admin/surveys/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ flow: incompleteFlow, status: "draft" }),
+      }),
+      context,
+    );
+
+    expect(response.status).toBe(200);
+  });
 });

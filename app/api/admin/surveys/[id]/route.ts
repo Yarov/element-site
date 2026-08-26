@@ -41,7 +41,8 @@ export async function PATCH(
   if (unauthorized) return unauthorized;
 
   const body = await request.json().catch(() => null);
-  const valid = validateFlow(body?.flow);
+  const strict = body?.status === "published";
+  const valid = validateFlow(body?.flow, { strict });
   if (!valid.success)
     return NextResponse.json(
       { error: "Invalid flow", issues: valid.error.issues },

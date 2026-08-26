@@ -5,6 +5,7 @@ import {
   markShownThisSession,
   readVisitorSignals,
   recordFlowDismissed,
+  recordFlowShown,
   recordSelectedService,
   recordWhatsappBookingIntent,
   resetVisitorSignals,
@@ -74,6 +75,20 @@ describe("visitor signals", () => {
       readVisitorSignals(NOW + 24 * 60 * 60 * 1000 + 1).whatsappBookingIntentAt,
     ).toBeUndefined();
     expect(readVisitorSignals(NOW + 90 * 24 * 60 * 60 * 1000 + 1)).toEqual({});
+  });
+
+  it("persists terminal state under the flow identity used by the evaluator", () => {
+    const storeId = "11111111-1111-4111-8111-111111111111";
+    const flowId = "graph-flow-id";
+
+    expect(recordFlowShown(storeId, NOW, flowId)).toBe(true);
+    expect(
+      getVisitorSignals(3, "/", NOW),
+    ).toEqual({
+      visitCount: 3,
+      pathname: "/",
+      flows: { [flowId]: { shownAt: NOW } },
+    });
   });
 
   it("drops malformed and non-permitted stored fields", () => {

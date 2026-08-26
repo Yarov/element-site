@@ -60,16 +60,28 @@ export function recordWhatsappBookingIntent(now = Date.now()) {
   );
 }
 
-export function recordFlowShown(flowId: string, now = Date.now()) {
-  return updateFlowState(flowId, { shownAt: now }, now);
+export function recordFlowShown(
+  storeId: string,
+  now = Date.now(),
+  flowId: string = storeId,
+) {
+  return updateFlowState(storeId, { shownAt: now }, now, flowId);
 }
 
-export function recordFlowDismissed(flowId: string, now = Date.now()) {
-  return updateFlowState(flowId, { dismissedAt: now }, now);
+export function recordFlowDismissed(
+  storeId: string,
+  now = Date.now(),
+  flowId: string = storeId,
+) {
+  return updateFlowState(storeId, { dismissedAt: now }, now, flowId);
 }
 
-export function recordFlowCompleted(flowId: string, now = Date.now()) {
-  return updateFlowState(flowId, { completedAt: now }, now);
+export function recordFlowCompleted(
+  storeId: string,
+  now = Date.now(),
+  flowId: string = storeId,
+) {
+  return updateFlowState(storeId, { completedAt: now }, now, flowId);
 }
 
 export function wasShownThisSession(flowId: string) {
@@ -113,17 +125,19 @@ export function resetVisitorSignals() {
 }
 
 function updateFlowState(
-  flowId: string,
+  storeId: string,
   state: FlowTerminalState,
   now: number,
+  flowId: string = storeId,
 ) {
-  if (!flowId) return false;
+  const resolvedId = flowId || storeId;
+  if (!resolvedId) return false;
   return updateSignals(
     (signals) => ({
       ...signals,
       flows: {
         ...signals.flows,
-        [flowId]: { ...signals.flows?.[flowId], ...state },
+        [resolvedId]: { ...signals.flows?.[resolvedId], ...state },
       },
     }),
     now,
